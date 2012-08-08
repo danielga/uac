@@ -1,0 +1,10 @@
+"AddonInfo"
+{
+	"name" "Lemon admin mod"
+	"version" "BETA"
+	"up_date" "7th June 2012"
+	"author_name" "Agent47, DrogenViech"
+	"author_email" "danielga100@hotmail.com, drogenviech@googlemail.com"
+	"author_url" "http://agent47.x10.mx"
+	"info" "An admin mod. How difficult is that to understand?"
+}

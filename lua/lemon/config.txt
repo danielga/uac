@@ -1,0 +1,24 @@
+; SQL database connection details
+; The next setting allows you to select which kind of database you want to use (local or sourcebans)
+SQL_CONNECTION_TYPE=local
+; If you chose the remote database (sourcebans) then you need to set up your connection details below
+SQL_HOST=gs02.daemonservers.co.uk
+SQL_HOST_PORT=3306
+SQL_DATABASE=jeppeh_tc01243285665614667526254
+SQL_USERNAME=jeppeh
+SQL_PASSWORD=pGqCTKcfVM
+
+; SQL details for databases of "sourcebans" type
+; This next setting allows Lemon to correctly identify SourceBans tables (eg. SOURCEBANS_PREFIX_bans)
+SOURCEBANS_PREFIX=sb
+
+; SQL details for databases of "local" type
+; This next setting allows Lemon to correctly identify bans tables
+LEMON_BANS_TABLE=lemon_bans
+; This next setting allows Lemon to correctly identify logs tables
+LEMON_LOGS_TABLE=lemon_logs
+; This next setting allows Lemon to correctly identify users tables
+LEMON_USERS_TABLE=lemon_users
+
+; This next setting allows Lemon to load GateKeeper and provide improved kick reasons
+GATEKEEPER_ENABLED=true
