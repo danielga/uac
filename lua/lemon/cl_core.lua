@@ -1,21 +1,16 @@
 lemon = lemon or {}
 
-//INITIALIZE LIBRARIES
-for k, file in pairs(file.FindInLua("lemon/lib/*.lua")) do
-	if string.sub(file, 1, 3) == "sh_" or string.sub(file, 1, 3) == "cl_" then
+-- LIBRARIES INITIALIZATION
+local files = file.Find("lemon/lib/*.lua", "LUA")
+for i = 1, #files do
+	local file = files[i]
+	local prefix = file:sub(1, 3)
+	if prefix == "sh_" or prefix == "cl_" then
 		include("lemon/lib/" .. file)
 	end
 end
-//END OF INITIALIZE LIBRARIES
+-- END OF LIBRARIES INITIALIZATION
 
-//INITIALIZE PLUGINS
-for k, file in pairs(file.FindInLua("lemon/plugins/*.lua")) do
-	if string.sub(file, 1, 3) == "sh_" or string.sub(file, 1, 3) == "cl_" then
-		lemon.plugin:Load(file)
-	end
-end
-//END OF INITIALIZE PLUGINS
-
-usermessage.Hook("lemon_ServerAnswer", function(umsg)
-	lemon.ServerHasLemon = umsg:ReadBool()
-end)
+-- PLUGINS INITIALIZATION
+lemon.plugin:IncludeAll()
+-- END OF PLUGINS INITIALIZATION

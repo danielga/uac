@@ -67,36 +67,32 @@ local meta = FindMetaTable("Player")
 if not meta then return end
 
 function meta:HasUserFlag(flag)
-	if self.IsFullyAuthenticated and not self:IsFullyAuthenticated() then return false end
-
 	if not flag then return false end
 	if flag == "" then return true end
-	if string.find(self:GetNetworkedString("LemonUserFlags", ""), flag, 1, true) then return true end
+	if self:GetUserFlags():find(flag, 1, true) then return true end
 
 	return false
 end
 
 function meta:GetUserFlags()
-	if self.IsFullyAuthenticated and not self:IsFullyAuthenticated() then return "" end
-
-	return self:GetNetworkedString("LemonUserFlags", "")
+	return self:GetNWString("UserFlags", "")
+	--return self:GetDTString(3):match("{UserFlags:([^}]*)}") or ""
 end
 
 function meta:IsAdmin()
-	if self.IsFullyAuthenticated and not self:IsFullyAuthenticated() then return false end
-
 	if self:IsSuperAdmin() then return true end
 	return self:IsUserGroup("admin")
 end
 
 function meta:IsSuperAdmin()
-	if self.IsFullyAuthenticated and not self:IsFullyAuthenticated() then return false end
-
 	return self:IsUserGroup("superadmin")
 end
 
-function meta:IsUserGroup(name)	
-	if self.IsFullyAuthenticated and not self:IsFullyAuthenticated() then return false end
+function meta:IsUserGroup(name)
+	return self:GetUserGroup() == name
+end
 
-	return self:GetNetworkedString("UserGroup") == name
+function meta:GetUserGroup()
+	return self:GetNWString("UserGroup", "")
+	--return self:GetDTString(3):match("{UserGroup:([^}]*)}") or ""
 end

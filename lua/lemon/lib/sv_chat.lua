@@ -1,30 +1,33 @@
 lemon.chat = lemon.chat or {}
-lemon.chat.Prefixes = lemon.chat.Prefixes or {"-", "!"}
+local chat_prefixes = {"-", "!"}
+
+util.AddNetworkString("lemon_chatmessage")
 
 local PLAYER = FindMetaTable("Player")
-function PLAYER:Mute(boolean)
-	ply.lemon.IsMuted = boolean
-end
+if PLAYER then
+	function PLAYER:Mute(boolean)
+		ply:GetLemonTable().IsMuted = boolean
+	end
 
-function PLAYER:Gag(boolean)
-	ply.lemon.IsGagged = boolean
-end
+	function PLAYER:Gag(boolean)
+		ply:GetLemonTable().IsGagged = boolean
+	end
 
-function PLAYER:ChatMessage(...)
-	lemon.chat:AddText(self, ...)
-end
+	function PLAYER:Notify(...)
+		lemon.chat:AddText(self, ...)
+	end
 
-function PLAYER:ParsedChatMessage(...)
-	lemon.chat:AddParsedText(self, ...)
+	function PLAYER:ParsedNotify(...)
+		lemon.chat:AddParsedText(self, ...)
+	end
 end
 
 local function GetType(var)
-	local vartype = type(var)
-	if vartype == "table" && table.Count(var) == 4 && var.r && var.g && var.b && var.a then
+	if type(var) == "table" && table.Count(var) == 4 && var.r && var.g && var.b && var.a then
 		return "Color"
 	end
 
-	return vartype
+	return type(var)
 end
 	
 function lemon.chat:AddParsedText(first, ...)
@@ -33,16 +36,19 @@ function lemon.chat:AddParsedText(first, ...)
 	local nofirst = false
 	if type(first) == "string" then
 		local items = lemon.chat:ParseTextColors(first)
-		for k, v in ipairs(items) do
+		for i = 1, #items do
+			local v = items[i]
 			table.insert(tbl, v)
 		end
 		nofirst = true
 	end
 
-	for k, v in ipairs(args) do
+	for i = 1, #args do
+		local v = args[i]
 		if type(v) == "string" then
 			local items = lemon.chat:ParseTextColors(v)
-			for i, j in ipairs(items) do
+			for k = 1, #args do
+				local j = args[k]
 				table.insert(tbl, j)
 			end
 		else
@@ -59,29 +65,51 @@ end
 
 function lemon.chat:AddText(first, ...)
 	local firsttype = GetType(first)
+	local tbl = (firsttype == "Player" or firsttype == "table") and {...} or {first, ...}
+	local size = #tbl
 
-	if firsttype == "CRecipientFilter" || firsttype == "Player" || firsttype == "table" then
-		lemon.usermessage:Send("lemon_chatmessage", first, ...)
+	net.Start("lemon_chatmessage")
+		net.WriteUInt(size, 8)
+		for i = 1, size do
+			local val = tbl[i]
+			local valtype = GetType(val)
+			if valtype == "Color" then
+				net.WriteBit(true)
+				net.WriteUInt(val.r, 8)
+				net.WriteUInt(val.g, 8)
+				net.WriteUInt(val.b, 8)
+				net.WriteUInt(val.a, 8)
+			elseif valtype == "string" then
+				net.WriteBit(false)
+				net.WriteString(val)
+			end
+		end
+
+	if targeted then
+		net.Send(first)
 	else
-		lemon.usermessage:SendGlobal("lemon_chatmessage", first, ...)
+		net.Broadcast()
 	end
 end
 
-hook.Add("PlayerSay", "lemon_chat_PlayerSay", function(ply, text, global)
-	if ply.lemon.IsGagged then return "" end
+hook.Add("PlayerSay", "lemon.chat.PlayerSay", function(ply, text, global)
+	if ply:GetLemonTable().IsGagged then return "" end
 
-	local prefix = string.sub(text, 1, 1)
-	if table.HasValue(lemon.chat.Prefixes, prefix) then
-		local command = string.lower(string.match(text, "%w+") or "")
+	local prefix = text:sub(1, 1)
+	if table.HasValue(chat_prefixes, prefix) then
+		local command = (text:match("%w+") or ""):lower()
 		local arguments = {}
-		for match in string.gmatch(string.sub(text, string.len(command) + 3, -1), "[^,]+") do
+		for match in text:sub(#command + 3, -1):gmatch("[^,]+") do
+			match = match:gsub("^%s*(.-)%s*$", "%1")
 			table.insert(arguments, match)
 		end
 
-		lemon.command:Run(ply, command, arguments)
+		if lemon.command:Run(ply, command, arguments) then
+			return ""
+		end
 	end
 end)
 
-hook.Add("PlayerCanHearPlayersVoice", "lemon_chat_PlayerCanHearPlayersVoice", function(listener, talker)
-	if talker.lemon.IsMuted then return false, false end
+hook.Add("PlayerCanHearPlayersVoice", "lemon.chat.MuteVoice", function(listener, talker)
+	if talker:GetLemonTable().IsMuted then return false, false end
 end)

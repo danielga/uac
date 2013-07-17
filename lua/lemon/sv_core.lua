@@ -1,27 +1,25 @@
 lemon = lemon or {}
 
-//INITIALIZE LIBRARIES
-for k, file in pairs(file.FindInLua("lemon/lib/*.lua")) do
-	if string.sub(file, 1, 3) == "sv_" then
-		include("lemon/lib/" .. file)
-	elseif string.sub(file, 1, 3) == "sh_" then
-		include("lemon/lib/" .. file)
-		AddCSLuaFile("lemon/lib/" .. file)
-	elseif string.sub(file, 1, 3) == "cl_" then
-		AddCSLuaFile("lemon/lib/" .. file)
-	end
+if not file.IsDir("lemon", "DATA") then
+	file.CreateDir("lemon")
 end
-//END OF INITIALIZE LIBRARIES
 
-//INITIALIZE PLUGINS
-for k, file in pairs(file.FindInLua("lemon/plugins/*.lua")) do
-	if string.sub(file, 1, 3) == "sv_" then
-		lemon.plugin:Load(file)
-	elseif string.sub(file, 1, 3) == "sh_" then
-		lemon.plugin:Load(file)
-		AddCSLuaFile("lemon/plugins/" .. file)
-	elseif string.sub(file, 1, 3) == "cl_" then
-		AddCSLuaFile("lemon/plugins/" .. file)
+-- LIBRARIES INITIALIZATION
+local files = file.Find("lemon/lib/*.lua", "LUA")
+for i = 1, #files do
+	local file = files[i]
+	local prefix = file:sub(1, 3)
+	if prefix == "sv_" then
+		include("lemon/lib/" .. file)
+	elseif prefix == "sh_" then
+		include("lemon/lib/" .. file)
+		AddCSLuaFile("lemon/lib/" .. file)
+	elseif prefix == "cl_" then
+		AddCSLuaFile("lemon/lib/" .. file)
 	end
 end
-//END OF INITIALIZE PLUGINS
+-- END OF LIBRARIES INITIALIZATION
+
+-- PLUGINS INITIALIZATION
+lemon.plugin:IncludeAll()
+-- END OF PLUGINS INITIALIZATION

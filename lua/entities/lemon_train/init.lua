@@ -7,7 +7,7 @@ ENT.Honk = Sound("Trainyard.train_horn_everywhere")
 ENT.ShadowParams = {}
 
 function ENT:Initialize()
-	self:SetColor(255, 255, 0, 255)
+	self:SetColor(Color(255, 255, 0, 255))
 	self:SetModel("models/props_trainstation/train001.mdl")
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
@@ -16,7 +16,7 @@ function ENT:Initialize()
 	self:SetTrigger(true)
 	self:StartMotionController()
 	local phys = self:GetPhysicsObject()
-	if ValidEntity(phys) then
+	if IsValid(phys) then
 		phys:EnableGravity(false)
 		phys:Wake()
 	end
@@ -36,7 +36,7 @@ end
 
 function ENT:StartTouch(ent)
 	if self:GetOwner() == ent and ent:Alive() and not self.Done then
-		self.Done = CurTime() + 8
+		self.Done = CurTime() + 1
 		if self.HitCallback then
 			self.HitCallback(self, ent)
 		end
@@ -44,9 +44,10 @@ function ENT:StartTouch(ent)
 end
 
 function ENT:Think()
-	if not ValidEntity(self:GetOwner()) or (self.Done and self.Done < CurTime()) then
+	local curtime = CurTime()
+	if not IsValid(self:GetOwner()) or (self.Done and self.Done < curtime) then
 		if self.EndCallback then
-			self.EndCallback(self, self:GetOwner())
+			self.EndCallback(self, self:GetOwner(), self.Done and self.Done >= curtime or false)
 		end
 
 		self.Entity:Remove()
@@ -62,7 +63,7 @@ end
 function ENT:PhysicsUpdate(phys, delta)
 	phys:Wake()
 
-	if not ValidEntity(self:GetOwner()) then return SIM_NOTHING end
+	if not IsValid(self:GetOwner()) then return SIM_NOTHING end
 	
 	if self:GetOwner():Alive() and not self.Done then
 		self.ShadowParams.pos = self:GetOwner():GetPos() + Vector(0, 0, 100)

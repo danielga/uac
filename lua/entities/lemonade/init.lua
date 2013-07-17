@@ -1,129 +1,176 @@
-AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
-include("schedules.lua")
-include("tasks.lua")
 
-ENT.m_fMaxYawSpeed = 20
-ENT.m_iClass = CLASS_COMBINE
---ENT.LastSchedule = SCHED_IDLE_WANDER
-ENT.CurSchedule = SCHED_IDLE_WANDER
-ENT.Finished = true
-
-AccessorFunc(ENT, "m_iClass", "NPCClass")
-AccessorFunc(ENT, "m_fMaxYawSpeed", "MaxYawSpeed")
+local ACTIVITY_IDLE = 0
+local ACTIVITY_WANDER = 1
+local ACTIVITY_CHASE = 2
 
 function ENT:Initialize()
 	self:SetModel("models/Police.mdl")
-	self:SetHullType(HULL_HUMAN)
-	self:SetHullSizeNormal()
-	self:SetSolid(SOLID_BBOX) 
-	self:SetMoveType(MOVETYPE_STEP)
-	self:CapabilitiesAdd(CAP_MOVE_GROUND | CAP_MOVE_JUMP | CAP_MOVE_CLIMB | CAP_MOVE_SHOOT | CAP_AUTO_DOORS | CAP_OPEN_DOORS | CAP_TURN_HEAD | CAP_WEAPON_MELEE_ATTACK1 | CAP_WEAPON_MELEE_ATTACK2 | CAP_WEAPON_RANGE_ATTACK1 | CAP_WEAPON_RANGE_ATTACK2 | CAP_USE_WEAPONS | CAP_USE_SHOT_REGULATOR | CAP_ANIMATEDFACE)
-	self:SetMaxYawSpeed(self.m_fMaxYawSpeed)
-	self:SetHealth(9999999)
-	self:Give("ai_weapon_stunstick")
-	self.CurSchedule = SCHED_IDLE_WANDER
-	self:AddRelationship("player D_NU 10")
+	self:SetHealth(999999999)
+	self:StartActivity(ACT_IDLE)
+	self:SetEnemy(nil)
+	self:SetCurrentActivity(ACTIVITY_WANDER)
 
-	hook.Add("EntityTakeDamage", "lemonade_EntityTakeDamage", function(victim, inflictor, attacker, dmg, dmginfo)
-		if victim == self.Entity then
-			dmginfo:SetDamage(0)
-		end
-	end)
+	self.Weapon = ents.Create("prop_dynamic")
+	self.Weapon:SetModel("models/weapons/w_stunbaton.mdl")
+	self.Weapon:Spawn()
+	self.Weapon:SetNotSolid(true)
 
-	hook.Add("ScaleNPCDamage", "lemonade_ScaleNPCDamage", function(npc, hitgroup, dmginfo)
-		if npc == self.Entity then
-			dmginfo:SetDamage(0)
-		end
-	end)
+	local bone = self:LookupBone("ValveBiped.baton_parent")
+	local pos, ang = self:GetBonePosition(bone)
+	self.Weapon:SetPos(self:GetPos())
+	self.Weapon:SetAngles(ang)
+	self.Weapon:FollowBone(self, bone)
+	self.Weapon:SetLocalPos(Vector(1, 0, -1))
+	self.Weapon:SetLocalAngles(Angle(0, 94.47, 0))
 end
 
-function ENT:Think()
-	if self:GetEnemy() and self:GetEnemy() != NULL and self:GetEnemy():IsValid() then
-		if self:GetEnemy():Health() <= 0 then
-			self:AddEntityRelationship(self:GetEnemy(), D_NU, 10)
+function ENT:GetCurrentActivity()
+	return self.CurrentActivity
+end
+
+function ENT:SetCurrentActivity(act)
+	self.CurrentActivity = act
+end
+
+function ENT:GetEnemy()
+	return self.Enemy
+end
+
+function ENT:SetEnemy(enemy)
+	self.Enemy = enemy
+end
+
+function ENT:FindSpots(tbl)
+	local tbl = tbl or {}
+	tbl.pos = tbl.pos or self:WorldSpaceCenter()
+	tbl.radius = tbl.radius or 1000
+	tbl.stepdown = tbl.stepdown or 20
+	tbl.stepup = tbl.stepup or 20
+	tbl.type = tbl.type or "any"
+
+	local path = Path("Follow")
+	local areas = navmesh.Find(tbl.pos, tbl.radius, tbl.stepdown, tbl.stepup)
+	local found = {}
+
+	for _, area in pairs(areas) do
+		local spots
+		if tbl.type == "hiding" then
+			spots = area:GetHidingSpots()
+		elseif tbl.type == "exposed" then
+			spots = area:GetExposedSpots()
+		elseif tbl.type == "any" then
+			spots = area:GetExposedSpots()
+			table.Add(spots, area:GetHidingSpots())
+		end
+
+		for k, vec in pairs(spots) do
+			path:Invalidate()
+			path:Compute(self, vec, 1)
+			table.insert(found, {vector = vec, distance = path:GetLength()})
+		end
+	end
+
+	return found
+end
+
+function ENT:OnInjured(dmg_info)
+	if self:GetCurrentActivity() ~= ACTIVITY_CHASE then
+		self:SetEnemy(Entity(1))
+		self:SetCurrentActivity(ACTIVITY_CHASE)
+	end
+end
+
+function ENT:OnKilled(dmg_info)
+	self:EmitSound(string.format("npc/metropolice/die%i.wav", math.random(1, 2)))
+	self:BecomeRagdoll(dmg_info)
+end
+
+function ENT:StunstickAttack(target, single)
+	if single then
+		self:StartActivity(ACT_MELEE_ATTACK_SWING)
+		coroutine.wait(0.5)
+		self:EmitSound(string.format("weapons/stunstick/stunstick_fleshhit%i.wav", math.random(1, 2)))
+		self:GetEnemy():TakeDamage(15, self, self.Weapon)
+		return "ok"
+	end
+
+	while true do
+		self:StartActivity(ACT_MELEE_ATTACK_SWING)
+		coroutine.wait(0.5)
+		self:EmitSound(string.format("weapons/stunstick/stunstick_fleshhit%i.wav", math.random(1, 2)))
+		self:GetEnemy():TakeDamage(15, self, self.Weapon)
+	end
+
+	return "ok"
+end
+
+function ENT:ChaseTarget(target)
+	local path = Path("Chase")
+	path:SetMinLookAheadDistance(300)
+	path:SetGoalTolerance(20)
+
+	self:StartActivity(ACT_RUN)
+	self.loco:SetDesiredSpeed(200)
+
+	while self:GetCurrentActivity() == ACTIVITY_CHASE and self:GetRangeTo(target) > 40 do
+		path:Compute(self, target:GetPos())
+		path:Chase(self, target)
+
+		if self.loco:IsStuck() then
+			self:HandleStuck()
+			return "stuck"
+		end
+
+		coroutine.yield()
+	end
+
+	return "ok"
+end
+
+function ENT:Wander()
+	local pos = self:FindSpot("random", {type = "any", radius = 5000})
+	if not pos then pos = self:GetPos() + Vector(math.Rand(-1, 1), math.Rand(-1, 1), 0) * 1000 end
+
+	self:StartActivity(ACT_WALK)
+	self.loco:SetDesiredSpeed(60)
+	
+	local path = Path("Follow")
+	path:SetMinLookAheadDistance(300)
+	path:SetGoalTolerance(20)
+	path:Compute(self, pos)
+
+	if not path:IsValid() then return "failed" end
+
+	while self:GetCurrentActivity() == ACTIVITY_WANDER and path:IsValid() do
+		path:Update(self)
+
+		if self.loco:IsStuck() then
+			self:HandleStuck()
+			return "stuck"
+		end
+
+		coroutine.yield()
+	end
+
+	self:StartActivity(ACT_IDLE)
+	return "ok"
+end
+
+function ENT:RunBehaviour()
+	while true do
+		if self:GetCurrentActivity() == ACTIVITY_CHASE and IsValid(self:GetEnemy()) then
+			if self:ChaseTarget(self:GetEnemy()) == "ok" then
+				self:StunstickAttack(self:GetEnemy(), true)
+			end
+
 			self:SetEnemy(nil)
-			self.CurSchedule = SCHED_IDLE_WANDER
-			self.Finished = false
-			self:TimedSchedule(5)
-		else
-			self:UpdateEnemyMemory(self:GetEnemy(), self:GetEnemy():GetPos())
+			self:SetCurrentActivity(ACTIVITY_WANDER)
+		elseif self:GetCurrentActivity() == ACTIVITY_WANDER then
+			self:Wander()
 		end
+
+		coroutine.yield()
 	end
-end
-
-function ENT:OnTakeDamage(dmginfo)
-	dmginfo:SetDamage(0)
-	--self.CurSchedule = SCHED_SMALL_FLINCH
-	self:SetSchedule(SCHED_SMALL_FLINCH)
-end
-
-function ENT:SelectSchedule(npcstate)
-	if !self.Finished then return end
-
-	if self.CurSchedule == SCHED_CHASE_ENEMY then
-		if self:GetEnemy() and self:GetEnemy():IsValid() and self.Entity:GetPos():Distance(self:GetEnemy():GetPos()) <= 65 then
-			self.CurSchedule = SCHED_MELEE_ATTACK1
-		else
-			self.CurSchedule = SCHED_CHASE_ENEMY
-		end
-		self:SetSchedule(self.CurSchedule)
-	elseif self.CurSchedule == SCHED_MELEE_ATTACK1 then
-		if self:GetEnemy() and self:GetEnemy():IsValid() and self.Entity:GetPos():Distance(self:GetEnemy():GetPos()) <= 65 then
-			self.CurSchedule = SCHED_MELEE_ATTACK1
-		else
-			self.CurSchedule = SCHED_CHASE_ENEMY
-		end
-		self:SetSchedule(self.CurSchedule)
-	elseif self.CurSchedule == SCHED_FORCED_GO_RUN then
-		self.CurSchedule = SCHED_IDLE_WANDER
-		self:TimedSchedule(5)
-	elseif self.CurSchedule == SCHED_FORCED_GO then
-		self.CurSchedule = SCHED_IDLE_WANDER
-		self:TimedSchedule(5)
-	else
-		self.CurSchedule = SCHED_IDLE_WANDER
-		self.Finished = false
-		self:TimedSchedule(5)
-	end
-end
-
-function ENT:StartEngineSchedule(schedule)
-	print("StartEngineSchedule " .. schedule)
-	self:ScheduleFinished()
-	self.bDoingEngineSchedule = true
-	self.Finished = false
-end
-
-function ENT:EngineScheduleFinish()
-	self.bDoingEngineSchedule = nil
-	self.Finished = true
-end
-
-function ENT:TimedSchedule(time)
-	timer.Create("lemonade_schedule", time, 1, function() if self and self:IsValid() then self:SetSchedule(self.CurSchedule) end end)
-end
-
-function ENT:RunToVector(vector)
-	timer.Destroy("lemonade_schedule")
-	self:SetLastPosition(vector)
-	self.CurSchedule = SCHED_FORCED_GO_RUN
-	self:SetSchedule(self.CurSchedule)
-end
-
-function ENT:WalkToVector(vector)
-	timer.Destroy("lemonade_schedule")
-	self:SetLastPosition(vector)
-	self.CurSchedule = SCHED_FORCED_GO
-	self:SetSchedule(self.CurSchedule)
-end
-
-function ENT:AttackTarget(entity)
-	timer.Destroy("lemonade_schedule")
-	self:AddEntityRelationship(entity, D_HT, 10)
-	self:SetEnemy(entity)
-	self:UpdateEnemyMemory(entity, entity:GetPos())
-	self.CurSchedule = SCHED_CHASE_ENEMY
-	self:SetSchedule(self.CurSchedule)
 end

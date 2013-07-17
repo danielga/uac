@@ -1,16 +1,18 @@
+local PLUGIN = lemon.plugin:New()
+
 PLUGIN.Name = "Map commands"
 PLUGIN.Description = "Adds commands to change maps."
 PLUGIN.Author = "Agent 47"
 
 function PLUGIN:ChangeMap(ply, command, args)
-	if ValidEntity(ply) and ply:IsPlayer() and #args < 1 then
+	if IsValid(ply) and ply:IsPlayer() and #args < 1 then
 		ply:ChatMessage(Color(255, 0, 0, 255), "[Lemon] ", Color(255, 0, 0, 255), "You need to provide a map name.")
 		return
 	end
 
 	local map = args[1]
 	local time = 0
-	if args[2] then time = math.max(tonumber(args[2]), 0) end
+	if args[2] then time = math.max(tonumber(args[2]) or 0, 0) end
 
 	timer.Create("lemon_mapchange", time, 1, function() game.ConsoleCommand("changelevel " .. map) end)
 end
@@ -24,7 +26,7 @@ PLUGIN:AddCommand("cancelmapchange", PLUGIN.CancelMapChange, ACCESS_MAP, "Cancel
 function PLUGIN:RestartMap(ply, command, args)
 	local map = game.GetMap()
 	local time = 0
-	if args[1] then time = math.max(tonumber(args[1]), 0) end
+	if args[1] then time = math.max(tonumber(args[1]) or 0, 0) end
 
 	timer.Create("lemon_restartmap", time, 1, function() game.ConsoleCommand("changelevel " .. map) end)
 end
@@ -34,3 +36,5 @@ function PLUGIN:CancelRestartMap(ply, command, args)
 	timer.Destroy("lemon_restartmap")
 end
 PLUGIN:AddCommand("cancelrestart", PLUGIN.CancelRestartMap, ACCESS_MAP, "Cancels restart", "")
+
+lemon.plugin:Register(PLUGIN)

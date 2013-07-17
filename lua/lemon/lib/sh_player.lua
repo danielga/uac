@@ -1,46 +1,35 @@
 lemon.player = lemon.player or {}
 
 if SERVER then
-	hook.Add("PlayerInitialSpawn", "lemon_player_PlayerInitialSpawn", function(ply)
-		if not ply.lemon then ply.lemon = {} end
-		
-		umsg.Start("lemon_ServerAnswer", ply)
-			umsg.Bool(true)
-		umsg.End()
+	util.AddNetworkString("lemon_player_ServerAnswer")
 
-		hook.Call("LemonPlayerInitialSpawn", nil, ply)
+	hook.Add("PlayerAuthed", "lemon.player.PlayerAuthed", function(ply, steamid, uniqueid)
+		net.Start("lemon_player_ServerAnswer")
+			net.WriteBit(true)
+		net.Send(ply)
 	end)
-
-	hook.Add("PostGamemodeLoaded", "lemon_player_PostGamemodeLoaded", function(ply)
-		if lemon.config:GetBool("GATEKEEPER_ENABLED") then
-			local errored = pcall(require, "gatekeeper")
-			if errored or !gatekeeper then
-				lemon.config:SetValue("GATEKEEPER_ENABLED", false)
-			end
-		end
+else
+	net.Receive("lemon_player_ServerAnswer", function(msg)
+		lemon.ServerHasLemon = net.ReadBit() == 1
 	end)
+end
 
-	lemon.player.KickOriginal = _R.Player.Kick
-	function lemon.player:Kick(ply, reason)
-		if IsValid(ply) and ply:IsPlayer() then
-			if lemon.config:GetBool("GATEKEEPER_ENABLED") then
-				gatekeeper.Drop(ply:UserID(), reason)
-			else
-				lemon.player.KickOriginal(ply, reason)
-			end
-		end
+local META = FindMetaTable("Player")
+if META then
+	function META:GetLemonTable()
+		if not self.lemon then self.lemon = {} end
+		return self.lemon
 	end
 
-	local META = FindMetaTable("Player")
-	if META then
-		function META:Kick(reason)
-			lemon.player:Kick(self, reason)
-		end
+	function META:IsImmune(ply)
+		return lemon.player:IsImmune(self, ply)
 	end
 end
 
 function lemon.player:GetPlayerFromSteamID(steamid)
-	for _, player in ipairs(player.GetAll()) do
+	local plys = player.GetHumans()
+	for i = 1, #plys do
+		local player = plys[i]
 		if player:SteamID() == steamid then
 			return player
 		end
@@ -49,60 +38,53 @@ function lemon.player:GetPlayerFromSteamID(steamid)
 	return NULL
 end
 
-function lemon.player:GetImmunity(ply, tar)
-	if tar == ply then
-		return true
-	end
-
-	if tar:IsUserGroup("superadmin") and not ply:IsUserGroup("superadmin") then
-		ply:ChatMessage(Color(255, 0, 0, 255), "[Lemon] ", Color(255, 255, 255, 255), ply:Name(), " is immune to this command.")
-		return false
-	end
-
-	if tar:IsUserGroup("admin") and not tar:IsUserGroup("admin") then
-		ply:ChatMessage(Color(255, 0, 0, 255), "[Lemon] ", Color(255, 255, 255, 255), ply:Name(), " is immune to this command.")
-		return false
-	end
-
-	return true
+function lemon.player:IsImmune(tar, ply)
+	return not (tar == ply) or (tar:IsSuperAdmin() and not ply:IsSuperAdmin()) or (tar:IsAdmin() and not ply:IsAdmin())
 end
 
-local empty_table = {}
-function lemon.player:GetTarget(ply, target, ignore_immunity)
-	local found = {}
+function lemon.player:GetTargets(ply, target, ignore_immunity)
+	if not target then return {} end
 
-	target = string.Trim(target)
+	target = target:gsub("^%s*(.-)%s*$", "%1")
 
 	if not target or target == "" then
-		ply:ChatMessage(Color(255, 0, 0, 255), "[Lemon] ", Color(255, 255, 255, 255), "You didn't provide an identifier.")
-		return empty_table
+		return {}
 	end
 
-	target = string.lower(target)
+	target = target:lower()
 
-	if string.sub(target, 1, 1) == "@" then
-		target = string.sub(target, 2)
+	local found = {}
+	local plys = player.GetAll()
+	local pre = target:sub(1, 1)
+	if pre == "@" then
+		target = target:sub(2)
 
 		if target == "all" then
-			found = player.GetAll()
+			found = plys
 		else
-			for k, v in pairs(player.GetAll()) do
-				if string.find(string.lower(team.GetName(v:Team())), target) and (not ignore_immunity and self:GetImmunity(ply, v)) then
+			for i = 1, #plys do
+				local v = plys[i]
+				if team.GetName(v:Team()):lower():find(target) and (not ignore_immunity and v:IsImmune(ply)) then
 					table.insert(found, v)
 				end
 			end
 		end
-	elseif string.sub(target, 1, 1) == "#" then
-		target = string.sub(target, 2)
+	elseif pre == "#" then
+		target = target:sub(2)
 
-		for k, v in pairs(player.GetAll()) do
-			if string.lower(v:UserID()) == target and (not ignore_immunity and self:GetImmunity(ply, v)) then
+		local userid = tonumber(target)
+		if userid == nil then return {} end
+
+		for i = 1, #plys do
+			local v = plys[i]
+			if v:UserID() == userid and (not ignore_immunity and v:IsImmune(ply)) then
 				table.insert(found, v)
 			end
 		end
 	else
-		for k, v in pairs(player.GetAll()) do
-			if (string.find(string.lower(v:Nick()), target) or string.find(string.lower(v:SteamID()), target)) and (not ignore_immunity and self:GetImmunity(ply, v)) then
+		for i = 1, #plys do
+			local v = plys[i]
+			if (v:Nick():lower():find(target) or v:SteamID():lower():find(target)) and (not ignore_immunity and v:IsImmune(ply)) then
 				table.insert(found, v)
 			end
 		end

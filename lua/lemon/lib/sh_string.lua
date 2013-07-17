@@ -1,23 +1,23 @@
 lemon.string = lemon.string or {}
 
-//Locals for faster access (these are functions that should be "faster" than normal and are rarely changed)
-local string_explode, string_len, string_byte, string_gsub = string.Explode, string.len, string.byte, string.gsub
-local string_gfind, string_sub, string_match, string_format, string_char = string.gfind, string.sub, string.match, string.format, string.char
-local table_getn, table_insert, table_concat = table.getn, table.insert, table.concat
+-- Locals for faster access (this library includes functions that should be "faster" than normal and are rarely changed)
+local string_explode, string_char = string.Explode, string.char
+local table_insert, table_concat = table.insert, table.concat
 local math_abs, math_min, math_floor, math_random = math.abs, math.min, math.floor, math.random
 local pairs, tonumber, tostring, type = pairs, tonumber, tostring, type
+local error = error
 
 function lemon.string:ParseINIData(text)
 	local t = {}
 	local section
 	local lines = string_explode("\n", text)
 	for i = 1, #lines do
-		local s = string_match(lines[i], "^%[([^%]]+)%]$")
+		local s = lines[i]:match("^%[([^%]]+)%]$")
 		if s then
 			section = s
 			t[section] = t[section] or {}
 		end
-		local key, value = string_match(lines[i], "^([%w_]+)%s-=%s-(.+)$")
+		local key, value = lines[i]:match("^([%w_]+)%s-=%s-(.+)$")
 		if tonumber(value) then value = tonumber(value) end
 		if value == "true" then value = true end
 		if value == "false" then value = false end
@@ -37,13 +37,13 @@ function lemon.string:CreateINIData(t)
 	local contents = ""
 	for section, s in pairs(t) do
 		if type(s) == "table" then
-			local sec = string_format("[%s]\n", section)
+			local sec = ("[%s]\n"):format(section)
 			for key, value in pairs(s) do
-				sec = sec .. string_format("%s=%s\n", key, tostring(value))
+				sec = sec .. ("%s=%s\n"):format(key, tostring(value))
 			end
 			contents = contents .. sec .. "\n"
 		else
-			contents = contents .. string_format("%s=%s\n", section, tostring(s)) .. "\n"
+			contents = contents .. ("%s=%s\n"):format(section, tostring(s)) .. "\n"
 		end
 	end
 
@@ -51,17 +51,17 @@ function lemon.string:CreateINIData(t)
 end
 
 function lemon.string:Levenshtein(s, t)
-	local d, sn, tn = {}, string_len(s), string_len(t)
+	local d, sn, tn = {}, #s, #t
 	for i = 0, sn do d[i * tn] = i end
 	for j = 0, tn do d[j] = j end
 	for i = 1, sn do
-		local si = string_byte(s, i)
+		local si = s:byte(i)
 		for j = 1, tn do
-			d[i * tn + j] = math_min(d[(i - 1) * tn + j] + 1, d[i * tn + j - 1] + 1, d[(i - 1) * tn + j - 1] + (si == string_byte(t, j) and 0 or 1))
+			d[i * tn + j] = math_min(d[(i - 1) * tn + j] + 1, d[i * tn + j - 1] + 1, d[(i - 1) * tn + j - 1] + (si == t:byte(j) and 0 or 1))
 		end
 	end
 
-	return d[table_getn(d)]
+	return d[#d]
 end
 
 function lemon.string:DamerauLevenshtein(s, t, lim)
@@ -72,11 +72,11 @@ function lemon.string:DamerauLevenshtein(s, t, lim)
 	
 	-- Convert string arguments to arrays of ints (ASCII values)
 	if type(s) == "string" then
-		s = {string_byte(s, 1, s_len)}
+		s = {s:byte(1, s_len)}
 	end
 
 	if type(t) == "string" then
-		t = {string_byte(t, 1, t_len)}
+		t = {t:byte(1, t_len)}
 	end
 
 	local num_columns = t_len + 1 -- We use this a lot
@@ -100,12 +100,12 @@ function lemon.string:DamerauLevenshtein(s, t, lim)
 		local best = lim -- Check to make sure something in this row will be below the limit
 		for j = 1, t_len do
 			local add_cost = (s[i] ~= t[j] and 1 or 0)
-			local val = math_min(d[i_pos - num_columns + j] + 1, /*Cost of deletion*/ d[i_pos + j - 1] + 1, /*Cost of insertion*/ d[i_pos - num_columns + j - 1] + add_cost /*Cost of substitution, it might not cost anything if it's the same*/)
+			local val = math_min(d[i_pos - num_columns + j] + 1, --[[Cost of deletion]] d[i_pos + j - 1] + 1, --[[Cost of insertion]] d[i_pos - num_columns + j - 1] + add_cost --[[Cost of substitution, it might not cost anything if it's the same]])
 			d[i_pos + j] = val
 
 			-- Is this eligible for tranposition?
 			if i > 1 and j > 1 and s[i] == t[j - 1] and s[i - 1] == t[j] then
-				d[i_pos + j] = math_min(val, /*Current cost*/ d[i_pos - num_columns - num_columns + j - 2] + add_cost /*Cost of transposition*/)
+				d[i_pos + j] = math_min(val, --[[Current cost]] d[i_pos - num_columns - num_columns + j - 2] + add_cost --[[Cost of transposition]])
 			end
 
 			if lim and val < best then
@@ -122,7 +122,7 @@ function lemon.string:DamerauLevenshtein(s, t, lim)
 end
 
 function lemon.string:StripQuotes(s)
-	return string_gsub(s, "^[\"]*(.-)[\"]*[\r]?[\n]?$", "%1")
+	return s:gsub("^[\"]*(.-)[\"]*[\r]?[\n]?$", "%1")
 end
 
 function lemon.string:SplitArgs(args)
@@ -132,10 +132,10 @@ function lemon.string:SplitArgs(args)
 	local quoteFlag = false
 	local strStore = ""
 
-	for a in string_gfind(args, ".+") do
+	for a in args:gfind(".+") do
 		if a ~= nil then
 			if quoteFlag == false then
-				if string_sub(a, 1, 1) == "\"" and string_sub(a, -1, -1) ~= "\"" then
+				if a:sub(1, 1) == "\"" and a:sub(-1, -1) ~= "\"" then
 					quoteFlag = true
 					strStore = a
 				else
@@ -144,7 +144,7 @@ function lemon.string:SplitArgs(args)
 					argc = argc + 1
 				end
 			else
-				if string_sub(a, -1, -1) == "\"" then
+				if a:sub(-1, -1) == "\"" then
 					quoteFlag = false
 					strStore = strStore .. " " .. a
 					strStore = stripQuotes(strStore)
@@ -167,11 +167,11 @@ end
 local String = table_concat(Chars)
 local Built = {['.'] = Chars}
 
-local AddLookup = function(CharSet)
-	local Substitute = string_gsub(String, '[^' .. CharSet .. ']', '')
+local function AddLookup(CharSet)
+	local Substitute = String:gsub('[^' .. CharSet .. ']', '')
 	local Lookup = {}
-	for Loop = 1, string_len(Substitute) do
-		Lookup[Loop] = string_sub(Substitute, Loop, Loop)
+	for Loop = 1, #Substitute do
+		Lookup[Loop] = Substitute:sub(Loop, Loop)
 	end
 	Built[CharSet] = Lookup
 
@@ -186,7 +186,7 @@ function lemon.string:RandomString(Length, CharSet)
 	else
 		local Result = {}
 		local Lookup = Built[CharSet] or AddLookup(CharSet)
-		local Range = table_getn(Lookup)
+		local Range = #Lookup
 
 		for Loop = 1,Length do
 			Result[Loop] = Lookup[math_random(1, Range)]
@@ -196,13 +196,47 @@ function lemon.string:RandomString(Length, CharSet)
 	end
 end
 
+local format_time = "%0.2i:%0.2i:%0.2i:%0.2i"
 function lemon.string:FormatTime(s)
-	if type(s) ~= "number" then return "00:00:00:00" end
+	if not type(s) == "number" then return "00:00:00:00" end
 	local days = math_floor(s / 86400)
 	s = s - (days * 86400)
 	local hours = math_floor(s / 3600)
 	s = s - (hours * 3600)
  	local minutes = math_floor(s / 60)
  	s = s - (minutes * 60)
- 	return string_format("%0.2i:%0.2i:%0.2i:%0.2i", days, hours, minutes, s)
+ 	return format_time:format(days, hours, minutes, s)
+end
+
+local formatex_pattern = "({%d+})"
+function lemon.string:Format(text, ...)
+	local matched = {}
+	local substitutes = {...}
+
+	for match in text:gmatch(formatex_pattern) do
+		local match_number = tonumber(match:sub(2, -2))
+		if match_number ~= nil and matched[match_number] == nil then
+			if substitutes[match_number]  == nil then
+				error(("No substitute found for {%i}."):format(match_number))
+			end
+
+			matched[match_number] = true
+			text = text:gsub(match, tostring(substitutes[match_number]))
+		end
+	end
+
+	return text
+end
+
+function lemon.string:IsSteamIDValid(steamid)
+	return type(steamid) == "string" and steamid:match("^STEAM_%d:%d:%d+$") ~= nil
+end
+
+function lemon.string:IsSteamID64Valid(steamid64)
+	-- On SteamID64, the first 4 numbers *probably* will never change (at least, in a long time)
+	return type(steamid64) == "string" and steamid64:sub(1, 4) == "7656" and steamid64:match("^%d+$") ~= nil
+end
+
+function lemon.string:IsIPValid(ip)
+	return type(steamid64) == "ip" and ip:match("^%d+.%d+.%d+.%d+$") ~= nil
 end
