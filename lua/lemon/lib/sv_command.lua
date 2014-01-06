@@ -39,13 +39,13 @@ function lemon.command:Run(ply, command, arguments)
 		if ply:HasUserFlag(command_table.Flag) then
 			local did, err = pcall(command_table.Function, ply, command, arguments)
 			if not did then
-				ply:ChatMessage(Color(255, 0, 0, 255), "[Lemon] ", Color(255, 255, 255, 255), "Error: '" .. err .. "'.")
+				ply:ChatText(Color(255, 0, 0, 255), "[Lemon] ", Color(255, 255, 255, 255), "Error: '" .. err .. "'.")
 				return false
 			end
 
 			return true
 		else
-			ply:ChatMessage(Color(255, 0, 0, 255), "[Lemon] ", Color(255, 255, 255, 255), "Error: You need the '" .. command_table.Flag .. "' flag in order to use this command.")
+			ply:ChatText(Color(255, 0, 0, 255), "[Lemon] ", Color(255, 255, 255, 255), "Error: You need the '" .. command_table.Flag .. "' flag in order to use this command.")
 			return false
 		end
 	end
@@ -61,10 +61,10 @@ function lemon.command:Run(ply, command, arguments)
 	end
 
 	if closest_distance and closest_distance <= 0.25 * #closest_command then
-		ply:ChatMessage(Color(255, 0, 0, 255), "[Lemon] ", Color(255, 255, 255, 255), "Did you mean '" .. closest_command .. "'?")
-		--ply:ChatMessage(Color(255, 0, 0, 255), "[Lemon] ", Color(255, 255, 255, 255), "Did you mean '" .. closest_command .. "'? Since it is very close, this command was ran instead.")
-		--return lemon.command:Run(ply, closest_command, arguments)
+		ply:ChatText(Color(255, 0, 0, 255), "[Lemon] ", Color(255, 255, 255, 255), "Did you mean '" .. closest_command .. "'?")
 	end
+
+	return false
 end
 
 net.Receive("lemon_command_EXE", function(len, ply)

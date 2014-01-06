@@ -36,36 +36,35 @@ local LemonBansQueries = {
 
 ----------------------------------------------------------------
 
-local function GetConnectionType()
-	return lemon.config:Get("SQL_CONNECTION_TYPE")
-end
+local function GetQuery(querytype)
+	local query
+	local tblprefix
 
-local function GetTablePrefix(contype)
-	return contype == "sourcebans" and lemon.config:Get("SOURCEBANS_PREFIX") or lemon.config:Get("LEMON_PREFIX")
-end
+	if lemon.config:GetValue("sql_connection_type") == "sourcebans" then
+		query = SourceBansQueries[querytype]
+		tblprefix = lemon.config:GetValue("sourcebans_prefix")
+	else
+		query = LemonBansQueries[querytype]
+		tblprefix = lemon.config:GetValue("lemon_prefix")
+	end
 
-local function GetQuery(contype, querytype)
-	return contype == "sourcebans" and SourceBansQueries[querytype] or LemonBansQueries[querytype]
-end
-
-local function IsPlayer(ply)
-	return IsEntity(ply) and ply:IsValid() and ply:IsPlayer()
+	if query then return lemon.string:Format(query, tblprefix) end
 end
 
 ----------------------------------------------------------------
 
 function lemon.ban:GetList(callback, userdata)
-	lemon.sql:Query(GetQuery(GetConnectionType(), "Get all bans"), callback, userdata)
+	lemon.sql:Query(GetQuery("Get all bans"), callback, userdata)
 end
 
 function lemon.ban:GetActiveList(callback, userdata)
-	lemon.sql:Query(GetQuery(GetConnectionType(), "Get all active bans"), callback, userdata)
+	lemon.sql:Query(GetQuery("Get all active bans"), callback, userdata)
 end
 
 ----------------------------------------------------------------
 
 local function IsBannedCheck(succeeded, data, userdata)
-	if succeeded and #data > 0 and IsPlayer(userdata.Player) then
+	if succeeded and #data > 0 and IsValid(userdata.Player) then
 		userdata.Player:GetLemonTable().LastBanUpdate = CurTime()
 		userdata.Player:GetLemonTable().IsBanned = true
 	end
@@ -76,16 +75,15 @@ local function IsBannedCheck(succeeded, data, userdata)
 end
 
 function lemon.ban:IsBanned(ident, callback, userdata)
-	local contype = GetConnectionType()
 	local userdata = {Callback = callback, Userdata = userdata}
 	local query
-	if IsPlayer(ident) then
+	if IsValid(ident) then
 		userdata.Player = ident
-		query = lemon.string:Format(GetQuery(contype, "Check player is banned"), GetTablePrefix(contype), ident:SteamID(), ident:IPAddress())
+		query = lemon.string:Format(GetQuery("Check player is banned"), ident:SteamID(), ident:IPAddress())
 	elseif lemon.string:IsSteamIDValid(ident) then
-		query = lemon.string:Format(GetQuery(contype, "Check player is banned by SteamID"), GetTablePrefix(contype), ident)
+		query = lemon.string:Format(GetQuery("Check player is banned by SteamID"), ident)
 	elseif lemon.string:IsIPValid(ident) then
-		query = lemon.string:Format(GetQuery(contype, "Check player is banned by IP"), GetTablePrefix(contype), ident)
+		query = lemon.string:Format(GetQuery("Check player is banned by IP"), ident)
 	else
 		return false
 	end
@@ -97,9 +95,9 @@ end
 
 local function VerifyBan(succeeded, data, userdata)
 	if not succeeded then
-		if IsPlayer(userdata.Player) then
-			if IsPlayer(userdata.Admin) then
-				userdata.Admin:ChatMessage(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to ban player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. "). Error: " .. data .. "\n")
+		if IsValid(userdata.Player) then
+			if IsValid(userdata.Admin) then
+				userdata.Admin:ChatText(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to ban player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. "). Error: " .. data .. "\n")
 			else
 				MsgC(Color(255, 0, 0, 255), "[lemon] ")
 				MsgC(Color(255, 255, 255, 255), "Unable to ban player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. "). Error: " .. data .. "\n")
@@ -108,8 +106,8 @@ local function VerifyBan(succeeded, data, userdata)
 			return
 		end
 
-		if IsPlayer(userdata.Admin) then
-			userdata.Admin:ChatMessage(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to ban player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. " (" .. userdata.Name == "" and "no name provided" or ("named " .. userdata.Name) .. "). Error: " .. data .. "\n")
+		if IsValid(userdata.Admin) then
+			userdata.Admin:ChatText(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to ban player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. " (" .. userdata.Name == "" and "no name provided" or ("named " .. userdata.Name) .. "). Error: " .. data .. "\n")
 		else
 			MsgC(Color(255, 0, 0, 255), "[lemon] ")
 			MsgC(Color(255, 255, 255, 255), "Unable to ban player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. " (" .. userdata.Name == "" and "no name provided" or ("named " .. userdata.Name) .. "). Error: " .. data .. "\n")
@@ -119,12 +117,12 @@ local function VerifyBan(succeeded, data, userdata)
 		return
 	end
 
-	if IsPlayer(userdata.Player) then
+	if IsValid(userdata.Player) then
 		userdata.Player:GetLemonTable().LastBanUpdate = CurTime()
 		userdata.Player:GetLemonTable().IsBanned = true
 
-		if IsPlayer(userdata.Admin) then
-			userdata.Admin:ChatMessage(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Banned player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. ").\n")
+		if IsValid(userdata.Admin) then
+			userdata.Admin:ChatText(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Banned player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. ").\n")
 		else
 			MsgC(Color(255, 0, 0, 255), "[lemon] ")
 			MsgC(Color(255, 255, 255, 255), "Banned player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. ").\n")
@@ -133,8 +131,8 @@ local function VerifyBan(succeeded, data, userdata)
 		return
 	end
 
-	if IsPlayer(userdata.Admin) then
-		userdata.Admin:ChatMessage(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Banned player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. " (" .. userdata.Name == "" and "no name provided" or ("named " .. userdata.Name) .. ").\n")
+	if IsValid(userdata.Admin) then
+		userdata.Admin:ChatText(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Banned player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. " (" .. userdata.Name == "" and "no name provided" or ("named " .. userdata.Name) .. ").\n")
 	else
 		MsgC(Color(255, 0, 0, 255), "[lemon] ")
 		MsgC(Color(255, 255, 255, 255), "Banned player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. " (" .. userdata.Name == "" and "no name provided" or ("named " .. userdata.Name) .. ").\n")
@@ -145,9 +143,9 @@ end
 
 local function AddBan(succeeded, data, userdata)
 	if not succeeded then
-		if IsPlayer(userdata.Player) then
-			if IsPlayer(userdata.Admin) then
-				userdata.Admin:ChatMessage(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to ban player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. "). Error: " .. data .. "\n")
+		if IsValid(userdata.Player) then
+			if IsValid(userdata.Admin) then
+				userdata.Admin:ChatText(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to ban player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. "). Error: " .. data .. "\n")
 			else
 				MsgC(Color(255, 0, 0, 255), "[lemon] ")
 				MsgC(Color(255, 255, 255, 255), "Unable to ban player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. "). Error: " .. data .. "\n")
@@ -156,8 +154,8 @@ local function AddBan(succeeded, data, userdata)
 			return
 		end
 
-		if IsPlayer(userdata.Admin) then
-			userdata.Admin:ChatMessage(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to ban player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. ". Error: " .. data .. "\n")
+		if IsValid(userdata.Admin) then
+			userdata.Admin:ChatText(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to ban player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. ". Error: " .. data .. "\n")
 		else
 			MsgC(Color(255, 0, 0, 255), "[lemon] ")
 			MsgC(Color(255, 255, 255, 255), "Unable to ban player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. ". Error: " .. data .. "\n")
@@ -168,24 +166,23 @@ local function AddBan(succeeded, data, userdata)
 	end
 
 	if #data == 0 then
-		local contype = GetConnectionType()
 		local query
 		if userdata.SteamID and userdata.IP then
-			query = lemon.string:Format(GetQuery(contype, "Ban player"), GetTablePrefix(contype), userdata.SteamID, userdata.IP, userdata.Name, userdata.Length, userdata.Reason, userdata.AdminSteamID, userdata.AdminIP, serverip, serverport)
+			query = lemon.string:Format(GetQuery("Ban player"), userdata.SteamID, userdata.IP, userdata.Name, userdata.Length, userdata.Reason, userdata.AdminSteamID, userdata.AdminIP, serverip, serverport)
 		elseif userdata.SteamID then
-			query = lemon.string:Format(GetQuery(contype, "Ban player by SteamID"), GetTablePrefix(contype), userdata.SteamID, userdata.Name, userdata.Length, userdata.Reason, userdata.AdminSteamID, userdata.AdminIP, serverip, serverport)
+			query = lemon.string:Format(GetQuery("Ban player by SteamID"), userdata.SteamID, userdata.Name, userdata.Length, userdata.Reason, userdata.AdminSteamID, userdata.AdminIP, serverip, serverport)
 		elseif userdata.IP then
-			query = lemon.string:Format(GetQuery(contype, "Ban player by IP"), GetTablePrefix(contype), userdata.IP, userdata.Name, userdata.Length, userdata.Reason, userdata.AdminSteamID, userdata.AdminIP, serverip, serverport)
+			query = lemon.string:Format(GetQuery("Ban player by IP"), userdata.IP, userdata.Name, userdata.Length, userdata.Reason, userdata.AdminSteamID, userdata.AdminIP, serverip, serverport)
 		end
 			
 		lemon.sql:Query(query, VerifyBan, userdata)
 	else
-		if IsPlayer(userdata.Player) then
+		if IsValid(userdata.Player) then
 			userdata.Player:GetLemonTable().LastBanUpdate = CurTime()
 			userdata.Player:GetLemonTable().IsBanned = true
 
-			if IsPlayer(userdata.Admin) then
-				userdata.Admin:ChatMessage(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to ban player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. ") because he is already banned.\n")
+			if IsValid(userdata.Admin) then
+				userdata.Admin:ChatText(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to ban player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. ") because he is already banned.\n")
 			else
 				MsgC(Color(255, 0, 0, 255), "[lemon] ")
 				MsgC(Color(255, 255, 255, 255), "Unable to ban player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. ") because he is already banned.\n")
@@ -194,8 +191,8 @@ local function AddBan(succeeded, data, userdata)
 			return
 		end
 
-		if IsPlayer(userdata.Admin) then
-			userdata.Admin:ChatMessage(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to ban player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. " because he is already banned.\n")
+		if IsValid(userdata.Admin) then
+			userdata.Admin:ChatText(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to ban player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. " because he is already banned.\n")
 		else
 			MsgC(Color(255, 0, 0, 255), "[lemon] ")
 			MsgC(Color(255, 255, 255, 255), "Unable to ban player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. " because he is already banned.\n")
@@ -207,7 +204,7 @@ end
 
 function lemon.ban:Add(ident, time, reason, issuer, name)
 	local userdata = {Name = name or "", Length = time, Reason = reason, AdminSteamID = "STEAM_ID_SERVER", AdminIP = serverip}
-	if IsPlayer(ident) then
+	if IsValid(ident) then
 		userdata.SteamID = ident:SteamID()
 		userdata.IP = ident:IPAddress()
 		userdata.Name = ident:Name()
@@ -223,7 +220,7 @@ function lemon.ban:Add(ident, time, reason, issuer, name)
 		return false
 	end
 
-	if IsPlayer(issuer) then
+	if IsValid(issuer) then
 		userdata.Admin = issuer
 		userdata.AdminSteamID = issuer:SteamID()
 		userdata.AdminIP = issuer:IPAddress()
@@ -236,9 +233,9 @@ end
 
 local function VerifyUnban(succeeded, data, userdata)
 	if not succeeded then
-		if IsPlayer(userdata.Player) then
-			if IsPlayer(userdata.Admin) then
-				userdata.Admin:ChatMessage(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to unban player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. "). Error: " .. data .. "\n")
+		if IsValid(userdata.Player) then
+			if IsValid(userdata.Admin) then
+				userdata.Admin:ChatText(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to unban player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. "). Error: " .. data .. "\n")
 			else
 				MsgC(Color(255, 0, 0, 255), "[lemon] ")
 				MsgC(Color(255, 255, 255, 255), "Unable to unban player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. "). Error: " .. data .. "\n")
@@ -247,8 +244,8 @@ local function VerifyUnban(succeeded, data, userdata)
 			return
 		end
 
-		if IsPlayer(userdata.Admin) then
-			userdata.Admin:ChatMessage(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to unban player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. ". Error: " .. data .. "\n")
+		if IsValid(userdata.Admin) then
+			userdata.Admin:ChatText(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to unban player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. ". Error: " .. data .. "\n")
 		else
 			MsgC(Color(255, 0, 0, 255), "[lemon] ")
 			MsgC(Color(255, 255, 255, 255), "Unable to unban player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. ". Error: " .. data .. "\n")
@@ -258,12 +255,12 @@ local function VerifyUnban(succeeded, data, userdata)
 		return
 	end
 
-	if IsPlayer(userdata.Player) then
+	if IsValid(userdata.Player) then
 		userdata.Player:GetLemonTable().LastBanUpdate = CurTime()
 		userdata.Player:GetLemonTable().IsBanned = false
 
-		if IsPlayer(userdata.Admin) then
-			userdata.Admin:ChatMessage(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unbanned player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. ").\n")
+		if IsValid(userdata.Admin) then
+			userdata.Admin:ChatText(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unbanned player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. ").\n")
 		else
 			MsgC(Color(255, 0, 0, 255), "[lemon] ")
 			MsgC(Color(255, 255, 255, 255), "Unbanned player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. ").\n")
@@ -272,8 +269,8 @@ local function VerifyUnban(succeeded, data, userdata)
 		return
 	end
 
-	if IsPlayer(userdata.Admin) then
-		userdata.Admin:ChatMessage(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unbanned player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. ".\n")
+	if IsValid(userdata.Admin) then
+		userdata.Admin:ChatText(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unbanned player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. ".\n")
 	else
 		MsgC(Color(255, 0, 0, 255), "[lemon] ")
 		MsgC(Color(255, 255, 255, 255), "Unbanned player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. ".\n")
@@ -282,9 +279,9 @@ end
 
 local function RemoveBan(succeeded, data, userdata)
 	if not succeeded then
-		if IsPlayer(userdata.Player) then
-			if IsPlayer(userdata.Admin) then
-				userdata.Admin:ChatMessage(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to unban player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. "). Error: " .. data .. "\n")
+		if IsValid(userdata.Player) then
+			if IsValid(userdata.Admin) then
+				userdata.Admin:ChatText(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to unban player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. "). Error: " .. data .. "\n")
 			else
 				MsgC(Color(255, 0, 0, 255), "[lemon] ")
 				MsgC(Color(255, 255, 255, 255), "Unable to unban player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. "). Error: " .. data .. "\n")
@@ -293,8 +290,8 @@ local function RemoveBan(succeeded, data, userdata)
 			return
 		end
 
-		if IsPlayer(userdata.Admin) then
-			userdata.Admin:ChatMessage(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to unban player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. ". Error: " .. data .. "\n")
+		if IsValid(userdata.Admin) then
+			userdata.Admin:ChatText(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to unban player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. ". Error: " .. data .. "\n")
 		else
 			MsgC(Color(255, 0, 0, 255), "[lemon] ")
 			MsgC(Color(255, 255, 255, 255), "Unable to unban player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. ". Error: " .. data .. "\n")
@@ -305,15 +302,14 @@ local function RemoveBan(succeeded, data, userdata)
 	end
 
 	if #data > 0 then
-		local contype = GetConnectionType()
-		lemon.sql:Query(lemon.string:Format(GetQuery(contype, "Unban player"), GetTablePrefix(contype), userdata.AdminSteamID, userdata.Reason, data[1].bid), VerifyUnban, userdata)
+		lemon.sql:Query(lemon.string:Format(GetQuery("Unban player"), userdata.AdminSteamID, userdata.Reason, data[1].bid), VerifyUnban, userdata)
 	else
-		if IsPlayer(userdata.Player) then
+		if IsValid(userdata.Player) then
 			userdata.Player:GetLemonTable().LastBanUpdate = CurTime()
 			userdata.Player:GetLemonTable().IsBanned = false
 
-			if IsPlayer(userdata.Admin) then
-				userdata.Admin:ChatMessage(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to unban player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. ") because he is not banned.\n")
+			if IsValid(userdata.Admin) then
+				userdata.Admin:ChatText(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to unban player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. ") because he is not banned.\n")
 			else
 				MsgC(Color(255, 0, 0, 255), "[lemon] ")
 				MsgC(Color(255, 255, 255, 255), "Unable to unban player " .. userdata.Player:Name() .. " (" .. userdata.SteamID .. ") because he is not banned.\n")
@@ -322,8 +318,8 @@ local function RemoveBan(succeeded, data, userdata)
 			return
 		end
 
-		if IsPlayer(userdata.Admin) then
-			userdata.Admin:ChatMessage(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to unban player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. " because he is not banned.\n")
+		if IsValid(userdata.Admin) then
+			userdata.Admin:ChatText(Color(255, 0, 0, 255), "[lemon] ", Color(255, 255, 255, 255), "Unable to unban player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. " because he is not banned.\n")
 		else
 			MsgC(Color(255, 0, 0, 255), "[lemon] ")
 			MsgC(Color(255, 255, 255, 255), "Unable to unban player with " .. userdata.SteamID and ("SteamID " .. userdata.SteamID) or ("IP " .. userdata.IP) .. " because he is not banned.\n")
@@ -335,7 +331,7 @@ end
 
 function lemon.ban:Remove(ident, reason, issuer)
 	local userdata = {SteamID = ident, Reason = reason, AdminSteamID = "STEAM_ID_SERVER"}
-	if IsPlayer(ident) then
+	if IsValid(ident) then
 		userdata.SteamID = ident:SteamID()
 		userdata.IP = ident:IPAddress()
 		userdata.Name = ident:Name()
@@ -348,7 +344,7 @@ function lemon.ban:Remove(ident, reason, issuer)
 		return false
 	end
 
-	if IsPlayer(issuer) then
+	if IsValid(issuer) then
 		userdata.Admin = issuer
 		userdata.AdminSteamID = issuer:SteamID()
 	end
@@ -369,7 +365,7 @@ if META then
 	end
 
 	local function UpdateStatus(succeeded, data, userdata)
-		if succeeded and #data > 0 and IsPlayer(userdata) then
+		if succeeded and #data > 0 and IsValid(userdata) then
 			userdata:GetLemonTable().IsBanned = true
 		end
 	end
@@ -394,7 +390,7 @@ local function CheckJoiningPlayerStatus(succeeded, data, userdata)
 		return
 	end
 
-	if IsPlayer(userdata.Player) then
+	if IsValid(userdata.Player) then
 		local plytable = userdata.Player:GetLemonTable()
 		plytable.LastBanUpdate = CurTime()
 

@@ -5,7 +5,7 @@ pcall(require, "mysqloo")
 
 local function RetryConnection()
 	local con = lemon.sql.Connection
-	if (lemon.config:Get("SQL_CONNECTION_TYPE") == "remote" or lemon.config:Get("SQL_CONNECTION_TYPE") == "sourcebans") and not lemon.config:GetBool("SQL_REDIRECTED") and not lemon.sql.Retrying then
+	if (lemon.config:GetValue("sql_connection_type") == "remote" or lemon.config:GetValue("sql_connection_type") == "sourcebans") and not lemon.config:GetBool("sql_redirected") and not lemon.sql.Retrying then
 		if con ~= nil then
 			local status = con:status()
 			if status == mysqloo.DATABASE_NOT_CONNECTED or status == mysqloo.DATABASE_INTERNAL_ERROR then
@@ -33,16 +33,16 @@ local function ConnectFailureCallback(database, error)
 end
 
 function lemon.sql:Connect(recreate)
-	if (lemon.config:Get("SQL_CONNECTION_TYPE") == "remote" or lemon.config:Get("SQL_CONNECTION_TYPE") == "sourcebans") and not lemon.config:GetBool("SQL_REDIRECTED") and mysqloo == nil then
-		lemon.config:Set("SQL_CONNECTION_TYPE", "local")
+	if (lemon.config:GetValue("sql_connection_type") == "remote" or lemon.config:GetValue("sql_connection_type") == "sourcebans") and not lemon.config:GetBool("sql_redirected") and mysqloo == nil then
+		lemon.config:Set("sql_connection_type", "local")
 	end
 
-	if (lemon.config:Get("SQL_CONNECTION_TYPE") == "remote" or lemon.config:Get("SQL_CONNECTION_TYPE") == "sourcebans") and not lemon.config:GetBool("SQL_REDIRECTED") then
+	if (lemon.config:GetValue("sql_connection_type") == "remote" or lemon.config:GetValue("sql_connection_type") == "sourcebans") and not lemon.config:GetBool("sql_redirected") then
 		if recreate or self.DatabaseConnection == nil then
 			self.Initialized = false
 			self.Retrying = false
 
-			self.DatabaseConnection = mysqloo.connect(lemon.config:Get("SQL_HOST"), lemon.config:Get("SQL_USERNAME"), lemon.config:Get("SQL_PASSWORD"), lemon.config:Get("SQL_DATABASE"), lemon.config:GetNumber("SQL_HOST_PORT"))
+			self.DatabaseConnection = mysqloo.connect(lemon.config:GetValue("sql_host"), lemon.config:GetValue("sql_username"), lemon.config:GetValue("sql_password"), lemon.config:GetValue("sql_database"), lemon.config:GetNumber("sql_host_port"))
 			if self.DatabaseConnection == nil then
 				RetryConnection()
 				return false
@@ -60,7 +60,6 @@ function lemon.sql:Connect(recreate)
 
 	return true
 end
-hook.Add("Initialize", "lemon.sql.Connect", function() lemon.sql:Connect() end)
 
 local function QuerySuccessCallback(query, data)
 	if query.Callback then
@@ -78,8 +77,8 @@ local function QueryFailureCallback(query, error, strquery)
 end
 
 function lemon.sql:Query(query, callback, userdata)
-	if lemon.config:Get("SQL_CONNECTION_TYPE") == "remote" or lemon.config:Get("SQL_CONNECTION_TYPE") == "sourcebans" then
-		if lemon.config:GetBool("SQL_REDIRECTED") then
+	if lemon.config:GetValue("sql_connection_type") == "remote" or lemon.config:GetValue("sql_connection_type") == "sourcebans" then
+		if lemon.config:GetBool("sql_redirected") then
 			local success = function(code, body, headers)
 				if not callback then
 					return
@@ -106,9 +105,9 @@ function lemon.sql:Query(query, callback, userdata)
 				end
 			end
 
-			local parameters = {username = lemon.config:Get("SQL_USERNAME"), password = lemon.config:Get("SQL_PASSWORD"), database = lemon.config:Get("SQL_DATABASE"), query = query}
+			local parameters = {username = lemon.config:GetValue("sql_username"), password = lemon.config:GetValue("sql_password"), database = lemon.config:GetValue("sql_database"), query = query}
 
-			HTTP({url = lemon.config:Get("SQL_REDIRECTOR_URL"), method = "post", parameters = parameters, success = success, failed = failed})
+			HTTP({url = lemon.config:GetValue("sql_redirector_url"), method = "post", parameters = parameters, success = success, failed = failed})
 			return true
 		else
 			if self.Initialized and not self.Retrying then
@@ -153,3 +152,7 @@ function lemon.sql:EscapeString(input, quotes)
 
 	return str
 end
+
+------------------------------------------------------------------
+
+lemon.sql:Connect()

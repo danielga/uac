@@ -1,15 +1,21 @@
 lemon.command = lemon.command or {}
 local auto_complete = {}
 
+function lemon.command:Get(name)
+	return auto_complete[name]
+end
+
+function lemon.command:GetList()
+	return auto_complete
+end
+
 function lemon.command:GetAutoComplete(command, args, showusage)
-	--print(args)
-	args = string.Explode(" ", args)
-	args = args[2]
+	args = args:match("^%s([^%s]+)")
 
 	local candidates = {}
 
 	for com, usage in pairs(auto_complete) do
-		if com:sub(1, args:len()) == args then
+		if not args or com:sub(1, args:len()) == args then
 			if showusage and usage ~= "" then
 				table.insert(candidates, ("%s %s %s"):format(command, com, usage))
 			else

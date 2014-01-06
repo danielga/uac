@@ -1,3 +1,7 @@
+if not file.IsDir("lemon", "DATA") then
+	file.CreateDir("lemon")
+end
+
 if SERVER then
 	AddCSLuaFile()
 	AddCSLuaFile("lemon/cl_core.lua")

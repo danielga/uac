@@ -1,54 +1,11 @@
 lemon.string = lemon.string or {}
 
 -- Locals for faster access (this library includes functions that should be "faster" than normal and are rarely changed)
-local string_explode, string_char = string.Explode, string.char
+local string_char = string.char
 local table_insert, table_concat = table.insert, table.concat
 local math_abs, math_min, math_floor, math_random = math.abs, math.min, math.floor, math.random
 local pairs, tonumber, tostring, type = pairs, tonumber, tostring, type
 local error = error
-
-function lemon.string:ParseINIData(text)
-	local t = {}
-	local section
-	local lines = string_explode("\n", text)
-	for i = 1, #lines do
-		local s = lines[i]:match("^%[([^%]]+)%]$")
-		if s then
-			section = s
-			t[section] = t[section] or {}
-		end
-		local key, value = lines[i]:match("^([%w_]+)%s-=%s-(.+)$")
-		if tonumber(value) then value = tonumber(value) end
-		if value == "true" then value = true end
-		if value == "false" then value = false end
-		if key and value then
-			if section then
-				t[section][key] = value
-			else
-				t[key] = value
-			end
-		end
-	end
-	
-	return t
-end
-
-function lemon.string:CreateINIData(t)
-	local contents = ""
-	for section, s in pairs(t) do
-		if type(s) == "table" then
-			local sec = ("[%s]\n"):format(section)
-			for key, value in pairs(s) do
-				sec = sec .. ("%s=%s\n"):format(key, tostring(value))
-			end
-			contents = contents .. sec .. "\n"
-		else
-			contents = contents .. ("%s=%s\n"):format(section, tostring(s)) .. "\n"
-		end
-	end
-
-	return contents
-end
 
 function lemon.string:Levenshtein(s, t)
 	local d, sn, tn = {}, #s, #t
@@ -165,10 +122,10 @@ for Loop = 0, 255 do
 	Chars[Loop + 1] = string_char(Loop)
 end
 local String = table_concat(Chars)
-local Built = {['.'] = Chars}
+local Built = {["."] = Chars}
 
 local function AddLookup(CharSet)
-	local Substitute = String:gsub('[^' .. CharSet .. ']', '')
+	local Substitute = String:gsub("[^" .. CharSet .. "]", "")
 	local Lookup = {}
 	for Loop = 1, #Substitute do
 		Lookup[Loop] = Substitute:sub(Loop, Loop)
@@ -179,16 +136,16 @@ local function AddLookup(CharSet)
 end
 
 function lemon.string:RandomString(Length, CharSet)
-	local CharSet = CharSet or '.'
+	local CharSet = CharSet or "."
 
-	if CharSet == '' then
-		return ''
+	if CharSet == "" then
+		return ""
 	else
 		local Result = {}
 		local Lookup = Built[CharSet] or AddLookup(CharSet)
 		local Range = #Lookup
 
-		for Loop = 1,Length do
+		for Loop = 1, Length do
 			Result[Loop] = Lookup[math_random(1, Range)]
 		end
 
@@ -209,6 +166,7 @@ function lemon.string:FormatTime(s)
 end
 
 local formatex_pattern = "({%d+})"
+local no_substitute_error = "No substitute found for {%i}."
 function lemon.string:Format(text, ...)
 	local matched = {}
 	local substitutes = {...}
@@ -216,8 +174,8 @@ function lemon.string:Format(text, ...)
 	for match in text:gmatch(formatex_pattern) do
 		local match_number = tonumber(match:sub(2, -2))
 		if match_number ~= nil and matched[match_number] == nil then
-			if substitutes[match_number]  == nil then
-				error(("No substitute found for {%i}."):format(match_number))
+			if substitutes[match_number] == nil then
+				error(no_substitute_error:format(match_number))
 			end
 
 			matched[match_number] = true

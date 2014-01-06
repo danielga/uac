@@ -1,9 +1,5 @@
 lemon = lemon or {}
 
-if not file.IsDir("lemon", "DATA") then
-	file.CreateDir("lemon")
-end
-
 -- LIBRARIES INITIALIZATION
 local files = file.Find("lemon/lib/*.lua", "LUA")
 for i = 1, #files do

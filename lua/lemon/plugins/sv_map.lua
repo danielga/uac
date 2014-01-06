@@ -6,7 +6,7 @@ PLUGIN.Author = "Agent 47"
 
 function PLUGIN:ChangeMap(ply, command, args)
 	if IsValid(ply) and ply:IsPlayer() and #args < 1 then
-		ply:ChatMessage(Color(255, 0, 0, 255), "[Lemon] ", Color(255, 0, 0, 255), "You need to provide a map name.")
+		ply:ChatText(Color(255, 0, 0, 255), "[Lemon] ", Color(255, 0, 0, 255), "You need to provide a map name.")
 		return
 	end
 

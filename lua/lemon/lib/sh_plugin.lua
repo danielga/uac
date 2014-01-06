@@ -25,10 +25,6 @@ if SERVER then
 		end
 		self.Commands = {}
 	end
-
-	function PLUGINS:Notify(...)
-		lemon.chat:AddText(...)
-	end
 end
 
 function PLUGINS:AddHook(name, unique, func)

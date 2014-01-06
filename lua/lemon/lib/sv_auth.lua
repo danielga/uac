@@ -14,7 +14,7 @@ function lemon.auth:UpdateUserFlags(steamid, flags)
 		users_list[steamid] = {usergroup = "", flags = flags}
 	end
 
-	local prefix = lemon.sql:EscapeString(lemon.config:Get("LEMON_PREFIX"))
+	local prefix = lemon.sql:EscapeString(lemon.config:GetValue("lemon_prefix"))
 	steamid = lemon.sql:EscapeString(steamid)
 
 	lemon.sql:Query("SELECT * FROM " .. prefix .. "_users WHERE steamid = '" .. steamid .. "'", function(succeeded, data)
@@ -37,7 +37,7 @@ function lemon.auth:UpdateUserGroup(steamid, usergroup)
 		users_list[steamid] = {usergroup = usergroup, flags = ""}
 	end
 
-	local prefix = lemon.sql:EscapeString(lemon.config:Get("LEMON_PREFIX"))
+	local prefix = lemon.sql:EscapeString(lemon.config:GetValue("lemon_prefix"))
 	steamid = lemon.sql:EscapeString(steamid)
 
 	lemon.sql:Query("SELECT * FROM " .. prefix .. "_users WHERE steamid = '" .. steamid .. "'", function(succeeded, data)
@@ -50,7 +50,7 @@ function lemon.auth:UpdateUserGroup(steamid, usergroup)
 end
 
 function lemon.auth:LoadUsersList()
-	local prefix = lemon.sql:EscapeString(lemon.config:Get("LEMON_PREFIX"))
+	local prefix = lemon.sql:EscapeString(lemon.config:GetValue("lemon_prefix"))
 
 	lemon.sql:Query("SELECT * FROM " .. prefix .. "_users", function(succeeded, data)
 		if succeeded and #data > 0 then
@@ -91,7 +91,7 @@ function lemon.auth:LoadUsersFile(filepath)
 			steamid = steamid:upper()
 			users_list[steamid] = {usergroup = tbl.usergroup or "users", flags = tbl.flags or ""}
 
-			local player = self:GetPlayerFromSteamID(steamid)
+			local player = lemon.player:GetPlayerFromSteamID(steamid)
 			if IsValid(player) and player:IsPlayer() then
 				player:SetUserGroup(data.usergroup)
 				player:SetUserFlags(data.flags)
@@ -155,7 +155,7 @@ if not file.Exists("lemon/default_users.txt", "DATA") then
 }]])
 end
 
-hook.Add("Initialize", "lemon.auth.LoadUsersList", function()
+hook.Add("Initialize", "lemon.Auth.LoadUsers", function()
 	lemon.auth:LoadUsersFile("lemon/users.txt")
 	lemon.auth:LoadUsersList()
 end)

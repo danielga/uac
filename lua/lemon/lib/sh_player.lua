@@ -1,7 +1,14 @@
 lemon.player = lemon.player or {}
 
 if SERVER then
+	NOTIFY_GENERIC = 0
+	NOTIFY_ERROR = 1
+	NOTIFY_UNDO = 2
+	NOTIFY_HINT = 3
+	NOTIFY_CLEANUP = 4
+
 	util.AddNetworkString("lemon_player_ServerAnswer")
+	util.AddNetworkString("lemon_player_Notify")
 
 	hook.Add("PlayerAuthed", "lemon.player.PlayerAuthed", function(ply, steamid, uniqueid)
 		net.Start("lemon_player_ServerAnswer")
@@ -9,8 +16,13 @@ if SERVER then
 		net.Send(ply)
 	end)
 else
-	net.Receive("lemon_player_ServerAnswer", function(msg)
+	net.Receive("lemon_player_ServerAnswer", function(len)
 		lemon.ServerHasLemon = net.ReadBit() == 1
+	end)
+
+	net.Receive("lemon_player_Notify", function(len)
+		-- Maximum number of seconds for notifications with this is 65535 which seems reasonable
+		notification.AddLegacy(net.ReadString(), net.ReadUInt(8), net.ReadUInt(16))
 	end)
 end
 
@@ -22,7 +34,18 @@ if META then
 	end
 
 	function META:IsImmune(ply)
-		return lemon.player:IsImmune(self, ply)
+		if not IsValid(ply) or self == ply then return false end
+		return (self:IsSuperAdmin() and not ply:IsSuperAdmin()) or (self:IsAdmin() and not ply:IsAdmin())
+	end
+
+	if SERVER then
+		function META:Notify(message, type, length)
+			net.Start("lemon_player_Notify")
+				net.WriteString(message)
+				net.WriteUInt(type, 8)
+				net.WriteUInt(length, 16)
+			net.Send(self)
+		end
 	end
 end
 
@@ -38,56 +61,68 @@ function lemon.player:GetPlayerFromSteamID(steamid)
 	return NULL
 end
 
-function lemon.player:IsImmune(tar, ply)
-	return not (tar == ply) or (tar:IsSuperAdmin() and not ply:IsSuperAdmin()) or (tar:IsAdmin() and not ply:IsAdmin())
+local function StringDistanceSort(a, b)
+	return a:GetLemonTable().__string_distance < b:GetLemonTable().__string_distance
 end
 
 function lemon.player:GetTargets(ply, target, ignore_immunity)
-	if not target then return {} end
+	local found = {}
+
+	if not target then return found end
 
 	target = target:gsub("^%s*(.-)%s*$", "%1")
 
-	if not target or target == "" then
-		return {}
-	end
+	if not target or target == "" then return found end
 
-	target = target:lower()
-
-	local found = {}
 	local plys = player.GetAll()
+	if target == "*" then return plys end
+
 	local pre = target:sub(1, 1)
 	if pre == "@" then
-		target = target:sub(2)
+		target = target:lower():sub(2)
 
-		if target == "all" then
-			found = plys
-		else
-			for i = 1, #plys do
-				local v = plys[i]
-				if team.GetName(v:Team()):lower():find(target) and (not ignore_immunity and v:IsImmune(ply)) then
-					table.insert(found, v)
-				end
+		for i = 1, #plys do
+			local v = plys[i]
+			local lowteam = team.GetName(v:Team()):lower()
+			if lowteam:find(target, nil, true) and (not ignore_immunity and not v:IsImmune(ply)) then
+				v:GetLemonTable().__string_distance = lemon.string:Levenshtein(target, lowteam)
+				table.insert(found, v)
 			end
 		end
+
+		table.sort(found, StringDistanceSort)
 	elseif pre == "#" then
 		target = target:sub(2)
 
 		local userid = tonumber(target)
-		if userid == nil then return {} end
+		if userid == nil then return found end
 
 		for i = 1, #plys do
 			local v = plys[i]
-			if v:UserID() == userid and (not ignore_immunity and v:IsImmune(ply)) then
+			if v:UserID() == userid and (not ignore_immunity and not v:IsImmune(ply)) then
+				table.insert(found, v)
+			end
+		end
+	elseif target:match("^STEAM_[0-5]:[0-9]:[0-9]+$") then
+		for i = 1, #plys do
+			local v = plys[i]
+			if v:SteamID() == target and (not ignore_immunity and not v:IsImmune(ply)) then
 				table.insert(found, v)
 			end
 		end
 	else
+		target = target:lower()
+
 		for i = 1, #plys do
 			local v = plys[i]
-			if (v:Nick():lower():find(target) or v:SteamID():lower():find(target)) and (not ignore_immunity and v:IsImmune(ply)) then
+			local lownick = v:Nick():lower()
+			if lownick:find(target, nil, true) and (not ignore_immunity and not v:IsImmune(ply)) then
+				v:GetLemonTable().__string_distance = lemon.string:Levenshtein(target, lownick)
 				table.insert(found, v)
 			end
 		end
+
+		table.sort(found, StringDistanceSort)
 	end
 
 	return found
