@@ -76,7 +76,6 @@ end
 
 function meta:GetUserFlags()
 	return self:GetNWString("UserFlags", "")
-	--return self:GetDTString(3):match("{UserFlags:([^}]*)}") or ""
 end
 
 function meta:IsAdmin()
@@ -94,5 +93,4 @@ end
 
 function meta:GetUserGroup()
 	return self:GetNWString("UserGroup", "")
-	--return self:GetDTString(3):match("{UserGroup:([^}]*)}") or ""
 end

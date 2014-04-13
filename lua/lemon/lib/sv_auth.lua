@@ -124,8 +124,6 @@ function meta:SetUserFlags(flags)
 	lemon.auth:UpdateUserFlags(self:SteamID(), flags)
 
 	self:SetNWString("UserFlags", flags)
-	--local old_ug = self:GetDTString(3):match("{UserGroup:([^}]*)}")
-	--self:SetDTString(3, ("{UserFlags:%s}{UserGroup:%s}"):format(flags, old_ug or ""))
 end
 
 function meta:SetUserGroup(name)
@@ -135,8 +133,6 @@ function meta:SetUserGroup(name)
 	lemon.auth:UpdateUserGroup(self:SteamID(), name)
 
 	self:SetNWString("UserGroup", name)
-	--local old_uf = self:GetDTString(3):match("{UserFlags:([^}]*)}")
-	--self:SetDTString(3, ("{UserFlags:%s}{UserGroup:%s}"):format(old_uf or "", name))
 end
 
 ------------------------------------------------------------------
