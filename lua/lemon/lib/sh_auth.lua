@@ -79,8 +79,7 @@ function meta:GetUserFlags()
 end
 
 function meta:IsAdmin()
-	if self:IsSuperAdmin() then return true end
-	return self:IsUserGroup("admin")
+	return self:IsSuperAdmin() or self:IsUserGroup("admin")
 end
 
 function meta:IsSuperAdmin()
