@@ -1,33 +1,33 @@
 lemon.plugin = lemon.plugin or {}
 local plugin_list = {}
 
-local PLUGINS = {}
-PLUGINS.__index = PLUGINS
+local PLUGIN = {}
+PLUGIN.__index = PLUGIN
 
 if SERVER then
-	function PLUGINS:AddCommand(name, func, flag, desc, usage)
+	function PLUGIN:AddCommand(name, func, flag, desc, usage)
 		self.Commands[name] = true
-		lemon.command:Add(name, function(...) return func(self, ...) end, flag, desc, usage)
+		lemon.command.Add(name, function(...) return func(self, ...) end, flag, desc, usage)
 	end
 
-	function PLUGINS:RemoveCommand(name)
+	function PLUGIN:RemoveCommand(name)
 		if not self.Commands[name] then
 			return
 		end
 
 		self.Commands[name] = nil
-		lemon.command:Remove(name)
+		lemon.command.Remove(name)
 	end
 
-	function PLUGINS:RemoveCommands()
+	function PLUGIN:RemoveCommands()
 		for name, _ in pairs(self.Commands) do
-			lemon.command:Remove(name)
+			lemon.command.Remove(name)
 		end
 		self.Commands = {}
 	end
 end
 
-function PLUGINS:AddHook(name, unique, func)
+function PLUGIN:AddHook(name, unique, func)
 	if not self.Hooks[name] then
 		self.Hooks[name] = {}
 	end
@@ -36,7 +36,7 @@ function PLUGINS:AddHook(name, unique, func)
 	hook.Add(name, unique, function(...) return func(self, ...) end)
 end
 
-function PLUGINS:RemoveHook(name, unique)
+function PLUGIN:RemoveHook(name, unique)
 	if not self.Hooks[name] or not self.Hooks[name][unique] then
 		return
 	end
@@ -45,7 +45,7 @@ function PLUGINS:RemoveHook(name, unique)
 	hook.Remove(name, unique)
 end
 
-function PLUGINS:RemoveHooks(name)
+function PLUGIN:RemoveHooks(name)
 	if name and not self.Hooks[name] then
 		return
 	end
@@ -65,27 +65,27 @@ function PLUGINS:RemoveHooks(name)
 	end
 end
 
-function lemon.plugin:GetList()
+function lemon.plugin.GetList()
 	return plugin_list
 end
 
-function lemon.plugin:Get(name)
+function lemon.plugin.Get(name)
 	return plugin_list[name]
 end
 
-function lemon.plugin:New()
-	return setmetatable({Hooks = {}, Commands = {}}, PLUGINS)
+function lemon.plugin.New()
+	return setmetatable({Hooks = {}, Commands = {}}, PLUGIN)
 end
 
-function lemon.plugin:Register(plugin)
+function lemon.plugin.Register(plugin)
 	local dbg = debug.getinfo(2, "S")
 	plugin.FileName = (dbg and dbg.source) and dbg.source:match("[/\\]([^/\\]-)$") or "unknown"
 	plugin_list[plugin.Name] = plugin
 
-	return lemon.plugin:Load(plugin)
+	return lemon.plugin.Load(plugin)
 end
 
-function lemon.plugin:Include(file)
+function lemon.plugin.Include(file)
 	local prefix = file:sub(1, 3)
 	if SERVER and prefix == "sv_" then
 		include("lemon/plugins/" .. file)
@@ -103,18 +103,20 @@ function lemon.plugin:Include(file)
 	end
 end
 
-function lemon.plugin:IncludeAll()
+function lemon.plugin.IncludeAll()
 	local files = file.Find("lemon/plugins/*.lua", "LUA")
 	for i = 1, #files do
-		self:Include(files[i])
+		lemon.plugin.Include(files[i])
 	end
 end
 
-function lemon.plugin:Load(plugin, reloaded)
-	if plugin.Active then return false end
+function lemon.plugin.Load(plugin, reloaded)
+	if plugin.Active then
+		return false
+	end
 
 	reloaded = reloaded or false
-	if plugin.Load and plugin:Load(reloaded) then
+	if plugin.Load and plugin.Load(reloaded) then
 		plugin.Active = true
 		return true
 	end
@@ -122,7 +124,7 @@ function lemon.plugin:Load(plugin, reloaded)
 	return false
 end
 
-function lemon.plugin:Reload(plugin)
+function lemon.plugin.Reload(plugin)
 	if plugin.CanUnload and not plugin:CanUnload(reloading) then
 		return false
 	end
@@ -130,7 +132,7 @@ function lemon.plugin:Reload(plugin)
 	return (plugin.Unload == nil or plugin:Unload(true)) and (plugin.Load == nil or plugin:Load(true))
 end
 
-function lemon.plugin:Unload(plugin, reloading)
+function lemon.plugin.Unload(plugin, reloading)
 	if not plugin.Active then return false end
 
 	reloading = reloading or false

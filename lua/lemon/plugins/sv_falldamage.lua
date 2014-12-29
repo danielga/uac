@@ -1,4 +1,4 @@
-local PLUGIN = lemon.plugin:New()
+local PLUGIN = lemon.plugin.New()
 
 PLUGIN.Name = "Fall damage"
 PLUGIN.Description = "Adds realistic fall damage."
@@ -13,4 +13,4 @@ function PLUGIN:GetFallDamage(ply, speed)
 end
 PLUGIN:AddHook("GetFallDamage", "Lemon realistic fall damage plugin", PLUGIN.GetFallDamage)
 
-lemon.plugin:Register(PLUGIN)
+lemon.plugin.Register(PLUGIN)

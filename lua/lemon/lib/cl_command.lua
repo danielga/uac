@@ -1,15 +1,15 @@
 lemon.command = lemon.command or {}
 local auto_complete = {}
 
-function lemon.command:Get(name)
+function lemon.command.Get(name)
 	return auto_complete[name]
 end
 
-function lemon.command:GetList()
+function lemon.command.GetList()
 	return auto_complete
 end
 
-function lemon.command:GetAutoComplete(command, args, showusage)
+function lemon.command.GetAutoComplete(command, args, showusage)
 	args = args:match("^%s([^%s]+)")
 
 	local candidates = {}
@@ -27,14 +27,14 @@ function lemon.command:GetAutoComplete(command, args, showusage)
 	return candidates
 end
 
-function lemon.command:Run(ply, command, arguments)
+function lemon.command.Run(ply, command, arguments)
 	net.Start("lemon_command_EXE")
-		net.WriteString(command)
-		local size = #arguments
-		net.WriteUInt(size, 8)
-		for i = 1, size do
-			net.WriteString(arguments[i])
-		end
+	net.WriteString(command)
+	local size = #arguments
+	net.WriteUInt(size, 8)
+	for i = 1, size do
+		net.WriteString(arguments[i])
+	end
 	net.SendToServer()
 end
 
@@ -50,9 +50,9 @@ concommand.Add("le", function(ply, command, args, str)
 		table.insert(args, match)
 	end
 
-	return lemon.command:Run(ply, command, args)
+	return lemon.command.Run(ply, command, args)
 end, function(command, args)
-	return lemon.command:GetAutoComplete(command, args)
+	return lemon.command.GetAutoComplete(command, args)
 end)
 
 net.Receive("lemon_command_ACS", function(len)

@@ -17,5 +17,5 @@ end
 -- END OF LIBRARIES INITIALIZATION
 
 -- PLUGINS INITIALIZATION
-lemon.plugin:IncludeAll()
+lemon.plugin.Include()
 -- END OF PLUGINS INITIALIZATION

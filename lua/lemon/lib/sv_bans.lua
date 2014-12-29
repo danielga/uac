@@ -53,12 +53,12 @@ end
 
 ----------------------------------------------------------------
 
-function lemon.ban:GetList(callback, userdata)
-	lemon.sql:Query(GetQuery("Get all bans"), callback, userdata)
+function lemon.ban.GetList(callback, userdata)
+	lemon.sql.Query(GetQuery("Get all bans"), callback, userdata)
 end
 
-function lemon.ban:GetActiveList(callback, userdata)
-	lemon.sql:Query(GetQuery("Get all active bans"), callback, userdata)
+function lemon.ban.GetActiveList(callback, userdata)
+	lemon.sql.Query(GetQuery("Get all active bans"), callback, userdata)
 end
 
 ----------------------------------------------------------------
@@ -74,21 +74,21 @@ local function IsBannedCheck(succeeded, data, userdata)
 	end
 end
 
-function lemon.ban:IsBanned(ident, callback, userdata)
+function lemon.ban.IsBanned(ident, callback, userdata)
 	local userdata = {Callback = callback, Userdata = userdata}
 	local query
 	if IsValid(ident) then
 		userdata.Player = ident
-		query = lemon.string:Format(GetQuery("Check player is banned"), ident:SteamID(), ident:IPAddress())
-	elseif lemon.string:IsSteamIDValid(ident) then
-		query = lemon.string:Format(GetQuery("Check player is banned by SteamID"), ident)
-	elseif lemon.string:IsIPValid(ident) then
-		query = lemon.string:Format(GetQuery("Check player is banned by IP"), ident)
+		query = lemon.string.Format(GetQuery("Check player is banned"), ident:SteamID(), ident:IPAddress())
+	elseif lemon.string.IsSteamIDValid(ident) then
+		query = lemon.string.Format(GetQuery("Check player is banned by SteamID"), ident)
+	elseif lemon.string.IsIPValid(ident) then
+		query = lemon.string.Format(GetQuery("Check player is banned by IP"), ident)
 	else
 		return false
 	end
 
-	return lemon.sql:Query(query, IsBannedCheck, userdata)
+	return lemon.sql.Query(query, IsBannedCheck, userdata)
 end
 
 ----------------------------------------------------------------
@@ -168,11 +168,11 @@ local function AddBan(succeeded, data, userdata)
 	if #data == 0 then
 		local query
 		if userdata.SteamID and userdata.IP then
-			query = lemon.string:Format(GetQuery("Ban player"), userdata.SteamID, userdata.IP, userdata.Name, userdata.Length, userdata.Reason, userdata.AdminSteamID, userdata.AdminIP, serverip, serverport)
+			query = lemon.string.Format(GetQuery("Ban player"), userdata.SteamID, userdata.IP, userdata.Name, userdata.Length, userdata.Reason, userdata.AdminSteamID, userdata.AdminIP, serverip, serverport)
 		elseif userdata.SteamID then
-			query = lemon.string:Format(GetQuery("Ban player by SteamID"), userdata.SteamID, userdata.Name, userdata.Length, userdata.Reason, userdata.AdminSteamID, userdata.AdminIP, serverip, serverport)
+			query = lemon.string.Format(GetQuery("Ban player by SteamID"), userdata.SteamID, userdata.Name, userdata.Length, userdata.Reason, userdata.AdminSteamID, userdata.AdminIP, serverip, serverport)
 		elseif userdata.IP then
-			query = lemon.string:Format(GetQuery("Ban player by IP"), userdata.IP, userdata.Name, userdata.Length, userdata.Reason, userdata.AdminSteamID, userdata.AdminIP, serverip, serverport)
+			query = lemon.string.Format(GetQuery("Ban player by IP"), userdata.IP, userdata.Name, userdata.Length, userdata.Reason, userdata.AdminSteamID, userdata.AdminIP, serverip, serverport)
 		end
 			
 		lemon.sql:Query(query, VerifyBan, userdata)
@@ -202,7 +202,7 @@ local function AddBan(succeeded, data, userdata)
 	end
 end
 
-function lemon.ban:Add(ident, time, reason, issuer, name)
+function lemon.ban.Add(ident, time, reason, issuer, name)
 	local userdata = {Name = name or "", Length = time, Reason = reason, AdminSteamID = "STEAM_ID_SERVER", AdminIP = serverip}
 	if IsValid(ident) then
 		userdata.SteamID = ident:SteamID()
@@ -212,9 +212,9 @@ function lemon.ban:Add(ident, time, reason, issuer, name)
 
 		ident:GetLemonTable().LastBanUpdate = CurTime()
 		ident:GetLemonTable().IsBanned = true
-	elseif lemon.string:IsSteamIDValid(ident) then
+	elseif lemon.string.IsSteamIDValid(ident) then
 		userdata.SteamID = ident
-	elseif lemon.string:IsIPValid(ident) then
+	elseif lemon.string.IsIPValid(ident) then
 		userdata.IP = ident
 	else
 		return false
@@ -226,7 +226,7 @@ function lemon.ban:Add(ident, time, reason, issuer, name)
 		userdata.AdminIP = issuer:IPAddress()
 	end
 
-	return lemon.ban:IsBanned(ident, AddBan, userdata)
+	return lemon.ban.IsBanned(ident, AddBan, userdata)
 end
 
 ----------------------------------------------------------------
@@ -302,7 +302,7 @@ local function RemoveBan(succeeded, data, userdata)
 	end
 
 	if #data > 0 then
-		lemon.sql:Query(lemon.string:Format(GetQuery("Unban player"), userdata.AdminSteamID, userdata.Reason, data[1].bid), VerifyUnban, userdata)
+		lemon.sql.Query(lemon.string.Format(GetQuery("Unban player"), userdata.AdminSteamID, userdata.Reason, data[1].bid), VerifyUnban, userdata)
 	else
 		if IsValid(userdata.Player) then
 			userdata.Player:GetLemonTable().LastBanUpdate = CurTime()
@@ -329,16 +329,16 @@ local function RemoveBan(succeeded, data, userdata)
 	end
 end
 
-function lemon.ban:Remove(ident, reason, issuer)
+function lemon.ban.Remove(ident, reason, issuer)
 	local userdata = {SteamID = ident, Reason = reason, AdminSteamID = "STEAM_ID_SERVER"}
 	if IsValid(ident) then
 		userdata.SteamID = ident:SteamID()
 		userdata.IP = ident:IPAddress()
 		userdata.Name = ident:Name()
 		userdata.Player = ident
-	elseif lemon.string:IsSteamIDValid(ident) then
+	elseif lemon.string.IsSteamIDValid(ident) then
 		userdata.SteamID = ident
-	elseif lemon.string:IsIPValid(ident) then
+	elseif lemon.string.IsIPValid(ident) then
 		userdata.IP = ident
 	else
 		return false
@@ -349,7 +349,7 @@ function lemon.ban:Remove(ident, reason, issuer)
 		userdata.AdminSteamID = issuer:SteamID()
 	end
 
-	return lemon.ban:IsBanned(ident, RemoveBan, userdata)
+	return lemon.ban.IsBanned(ident, RemoveBan, userdata)
 end
 
 ----------------------------------------------------------------
@@ -357,11 +357,11 @@ end
 local META = FindMetaTable("Player")
 if META then
 	function META:Ban(minutes, reason, issuer) -- issuer added to the end to allow compatibility with vanilla GMod
-		return lemon.ban:Add(self, minutes, reason, issuer)
+		return lemon.ban.Add(self, minutes, reason, issuer)
 	end
 
 	function META:Unban(reason, issuer) -- in case you want a "let banned players come in with restrictions"
-		return lemon.ban:Remove(self, reason, issuer)
+		return lemon.ban.Remove(self, reason, issuer)
 	end
 
 	local function UpdateStatus(succeeded, data, userdata)
@@ -375,7 +375,7 @@ if META then
 		local curtime = CurTime() -- only update the cached value each 15 seconds if IsBanned is called frequently
 		if curtime - (plytable.LastBanUpdate or 0) >= 15 then
 			plytable.LastBanUpdate = curtime
-			lemon.ban:IsBanned(self, UpdateStatus, self)
+			lemon.ban.IsBanned(self, UpdateStatus, self)
 		end
 		
 		return plytable.IsBanned or false -- returns cached value or false but tries to update it when this function is called
@@ -407,5 +407,5 @@ local function CheckJoiningPlayerStatus(succeeded, data, userdata)
 end
 
 hook.Add("PlayerAuthed", "lemon.bans.CheckPlayerStatus", function(ply, steamid, uniqueid)
-	lemon.ban:IsBanned(self, CheckJoiningPlayerStatus, {Player = ply, SteamID = steamid, IP = ply:IPAddress()})
+	lemon.ban.IsBanned(self, CheckJoiningPlayerStatus, {Player = ply, SteamID = steamid, IP = ply:IPAddress()})
 end)

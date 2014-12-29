@@ -1,4 +1,4 @@
-local PLUGIN = lemon.plugin:New()
+local PLUGIN = lemon.plugin.New()
 
 PLUGIN.Name = "RCON"
 PLUGIN.Description = "Adds access to the server console."
@@ -10,8 +10,8 @@ function PLUGIN:RemoteConsole(ply, command, args)
 		return
 	end
 
-	game.ConsoleCommand(table.concat(args, " "))
+	game.ConsoleCommand(table.concat(args, " ") .. "\n")
 end
 PLUGIN:AddCommand("rcon", PLUGIN.RemoteConsole, ACCESS_RCON, "Execute command on the server", "<Command>")
 
-lemon.plugin:Register(PLUGIN)
+lemon.plugin.Register(PLUGIN)

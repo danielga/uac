@@ -29,7 +29,7 @@ local function APMakeString(v)
 	return int:rep(#v):format(unpack(v))
 end
 
-function lemon.math:Add(a, b) -- only recommended for big numbers which Lua can't handle properly (must be positive integers)
+function lemon.math.Add(a, b) -- only recommended for big numbers which Lua can't handle properly (must be positive integers)
 	local A = APMakeTable(a)
 	local B = APMakeTable(b)
 
@@ -59,7 +59,7 @@ function lemon.math:Add(a, b) -- only recommended for big numbers which Lua can'
 	return APMakeString(C)
 end
 
-function lemon.math:Sub(a, b) -- only recommended for big numbers which Lua can't handle properly (must be positive integers)
+function lemon.math.Sub(a, b) -- only recommended for big numbers which Lua can't handle properly (must be positive integers)
 	local A = APMakeTable(a)
 	local B = APMakeTable(b)
 

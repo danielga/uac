@@ -6,33 +6,33 @@ util.AddNetworkString("lemon_command_ACA")
 util.AddNetworkString("lemon_command_ACR")
 util.AddNetworkString("lemon_command_ACS")
 
-function lemon.command:Add(name, func, flag, desc, usage)
+function lemon.command.Add(name, func, flag, desc, usage)
 	command_list[name] = {Function = func, Flag = flag, Description = desc, Usage = usage}
 	net.Start("lemon_command_ACA")
-		net.WriteString(name)
-		net.WriteString(usage or "")
+	net.WriteString(name)
+	net.WriteString(usage or "")
 	net.Broadcast(msg)
 end
 
-function lemon.command:Remove(name)
+function lemon.command.Remove(name)
 	if not command_list[name] then return end
 
 	command_list[name] = nil
 
 	net.Start("lemon_command_ACR")
-		net.WriteString(name)
+	net.WriteString(name)
 	net.Broadcast(msg)
 end
 
-function lemon.command:Get(name)
+function lemon.command.Get(name)
 	return command_list[name]
 end
 
-function lemon.command:GetList()
+function lemon.command.GetList()
 	return command_list
 end
 
-function lemon.command:Run(ply, command, arguments)
+function lemon.command.Run(ply, command, arguments)
 	command = command:lower()
 	local command_table = command_list[command]
 	if command_table ~= nil then
@@ -73,10 +73,10 @@ net.Receive("lemon_command_EXE", function(len, ply)
 	for i = 1, net.ReadUInt(8) do
 		table.insert(args, net.ReadString())
 	end
-	lemon.command:Run(ply, command, args)
+	lemon.command.Run(ply, command, args)
 end)
 
-function lemon.command:AutoCompleteSync(ply)
+function lemon.command.AutoCompleteSync(ply)
 	local num = table.Count(command_list)
 
 	net.Start("lemon_command_ACS")
@@ -87,4 +87,6 @@ function lemon.command:AutoCompleteSync(ply)
 		end
 	net.Send(ply)
 end
-hook.Add("PlayerInitialSpawn", "lemon.command.AutoCompleteSync", function(ply) lemon.command:AutoCompleteSync(ply) end)
+hook.Add("PlayerInitialSpawn", "lemon.command.AutoCompleteSync", function(ply)
+	lemon.command.AutoCompleteSync(ply)
+end)

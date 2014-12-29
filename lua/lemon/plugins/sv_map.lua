@@ -1,4 +1,4 @@
-local PLUGIN = lemon.plugin:New()
+local PLUGIN = lemon.plugin.New()
 
 PLUGIN.Name = "Map commands"
 PLUGIN.Description = "Adds commands to change maps."
@@ -14,7 +14,9 @@ function PLUGIN:ChangeMap(ply, command, args)
 	local time = 0
 	if args[2] then time = math.max(tonumber(args[2]) or 0, 0) end
 
-	timer.Create("lemon_mapchange", time, 1, function() game.ConsoleCommand("changelevel " .. map) end)
+	timer.Create("lemon_mapchange", time, 1, function()
+		game.ConsoleCommand("changelevel " .. map .. "\n")
+	end)
 end
 PLUGIN:AddCommand("mapchange", PLUGIN.ChangeMap, ACCESS_MAP, "Changes the map", "<Map name> [Countdown time]")
 
@@ -28,7 +30,9 @@ function PLUGIN:RestartMap(ply, command, args)
 	local time = 0
 	if args[1] then time = math.max(tonumber(args[1]) or 0, 0) end
 
-	timer.Create("lemon_restartmap", time, 1, function() game.ConsoleCommand("changelevel " .. map) end)
+	timer.Create("lemon_restartmap", time, 1, function()
+		game.ConsoleCommand("changelevel " .. map .. "\n")
+	end)
 end
 PLUGIN:AddCommand("restart", PLUGIN.RestartMap, ACCESS_MAP, "Restarts the current map", "[Countdown time]")
 
@@ -37,4 +41,4 @@ function PLUGIN:CancelRestartMap(ply, command, args)
 end
 PLUGIN:AddCommand("cancelrestart", PLUGIN.CancelRestartMap, ACCESS_MAP, "Cancels restart", "")
 
-lemon.plugin:Register(PLUGIN)
+lemon.plugin.Register(PLUGIN)

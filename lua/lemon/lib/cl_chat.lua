@@ -68,7 +68,7 @@ hook.Add("ChatTextChanged", "lemon.chat.ChatTextChanged", function(text)
 		local added = 0
 		local maxw = 0
 		local maxh = 5 -- border size
-		for name, usage in pairs(lemon.command:GetList()) do
+		for name, usage in pairs(lemon.command.GetList()) do
 			if added >= 5 then break end
 
 			if not command or name:sub(1, comlen) == command then

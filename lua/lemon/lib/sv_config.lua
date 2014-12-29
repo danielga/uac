@@ -1,58 +1,58 @@
 lemon.config = lemon.config or {}
 local config_list = {}
 
-function lemon.config:Delete(name)
-	self:Set(name, nil)
+function lemon.config.Delete(name)
+	lemon.config.Set(name, nil)
 end
 
-function lemon.config:Exists(name)
+function lemon.config.Exists(name)
 	return config_list[name] ~= nil
 end
 
-function lemon.config:Set(name, conf)
+function lemon.config.Set(name, conf)
 	config_list[name] = conf
 end
 
-function lemon.config:Get(name)
+function lemon.config.Get(name)
 	return config_list[name]
 end
 
-function lemon.config:SetValue(name, value)
-	if not lemon.config:Exists(name) then return end
+function lemon.config.SetValue(name, value)
+	if not lemon.config.Exists(name) then return end
 
 	config_list[name].value = value
 end
 
-function lemon.config:GetValue(name, default)
-	local conf = lemon.config:Get(name)
+function lemon.config.GetValue(name, default)
+	local conf = lemon.config.Get(name)
 	return conf and conf.value or default
 end
 
-function lemon.config:GetBool(name, default)
-	local value = self:GetValue(name)
+function lemon.config.GetBool(name, default)
+	local value = lemon.config.GetValue(name)
 	return value == nil and default or (value == true or value == "true" or value == 1)
 end
 
-function lemon.config:GetString(name, default)
-	local value = self:GetValue(name)
+function lemon.config.GetString(name, default)
+	local value = lemon.config.GetValue(name)
 	return value == nil and default or tostring(value)
 end
 
-function lemon.config:GetNumber(name, default)
-	local value = self:GetValue(name)
+function lemon.config.GetNumber(name, default)
+	local value = lemon.config.GetValue(name)
 	return value == nil and default or tonumber(value)
 end
 
-function lemon.config:GetList()
+function lemon.config.GetList()
 	return config_list
 end
 
-function lemon.config:Reset()
+function lemon.config.Reset()
 	--much better than setting each value to nil
 	config_list = {}
 end
 
-function lemon.config:LoadValuesFromFile(filepath)
+function lemon.config.LoadValuesFromFile(filepath)
 	local text = file.Read(filepath, "DATA")
 	if not text then return end
 	local keyvalues = util.KeyValuesToTable(text)
@@ -63,7 +63,7 @@ function lemon.config:LoadValuesFromFile(filepath)
 	end
 end
 
-function lemon.config:SaveValuesToFile(filepath)
+function lemon.config.SaveValuesToFile(filepath)
 	local keyvalues = util.TableToKeyValues(config_list)
 	if keyvalues then
 		file.Write(filepath, keyvalues)
@@ -174,5 +174,5 @@ if not file.Exists("lemon/default_config.txt", "DATA") then
 }]])
 end
 
-lemon.config:LoadValuesFromFile("lemon/default_config.txt")
-lemon.config:LoadValuesFromFile("lemon/config.txt")
+lemon.config.LoadValuesFromFile("lemon/default_config.txt")
+lemon.config.LoadValuesFromFile("lemon/config.txt")

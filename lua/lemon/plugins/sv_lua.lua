@@ -1,4 +1,4 @@
-local PLUGIN = lemon.plugin:New()
+local PLUGIN = lemon.plugin.New()
 
 PLUGIN.Name = "Lua commands"
 PLUGIN.Description = "Adds commands that interface with Lua."
@@ -20,7 +20,7 @@ function PLUGIN:sv_lua(ply, command, args)
 	local plypos = ply:GetPos()
 	local trace = util.GetPlayerTrace(ply)
 	local traceRes = util.TraceLine(trace)
-	lemon.lua:Run(	common_code:format(
+	lemon.lua.Run(	common_code:format(
 						ply:EntIndex(),
 						traceRes.Entity:EntIndex(),
 						plypos.x,
@@ -38,7 +38,7 @@ function PLUGIN:sh_lua(ply, command, args)
 	local plypos = ply:GetPos()
 	local trace = util.GetPlayerTrace(ply)
 	local traceRes = util.TraceLine(trace)
-	lemon.lua:RunOnShared(	common_code:format(
+	lemon.lua.RunOnShared(	common_code:format(
 								ply:EntIndex(),
 								traceRes.Entity:EntIndex(),
 								plypos.x,
@@ -56,7 +56,7 @@ function PLUGIN:cls_lua(ply, command, args)
 	local plypos = ply:GetPos()
 	local trace = util.GetPlayerTrace(ply)
 	local traceRes = util.TraceLine(trace)
-	lemon.lua:RunOnClients(	common_code:format(
+	lemon.lua.RunOnClients(	common_code:format(
 								ply:EntIndex(),
 								traceRes.Entity:EntIndex(),
 								plypos.x,
@@ -71,7 +71,7 @@ end
 PLUGIN:AddCommand("lcs", PLUGIN.cls_lua, ACCESS_SERVEROWNER, "Executes Lua code on the clients", "<Lua code>")
 
 function PLUGIN:cl_lua(ply, command, args)
-	local targets = lemon.player:GetTargets(ply, args[1], true)
+	local targets = lemon.player.GetTargets(ply, args[1], true)
 	local plypos = ply:GetPos()
 	local trace = util.GetPlayerTrace(ply)
 	local traceRes = util.TraceLine(trace)
@@ -89,7 +89,7 @@ function PLUGIN:cl_lua(ply, command, args)
 
 	for i = 1, #targets do
 		local v = targets[i]
-		lemon.lua:RunOnClient(v, script, ply)
+		lemon.lua.RunOnClient(v, script, ply)
 	end
 end
 PLUGIN:AddCommand("lc", PLUGIN.cl_lua, ACCESS_SERVEROWNER, "Executes Lua code on the specified client", "<Player name | SteamID | #UserID | @Team name> <Lua code>")
@@ -110,7 +110,7 @@ function PLUGIN:me_lua(ply, command, args)
 						table.concat(args, " ", 2)
 					)
 
-	lemon.lua:RunOnClient(ply, script, ply)
+	lemon.lua.RunOnClient(ply, script, ply)
 end
 PLUGIN:AddCommand("lm", PLUGIN.me_lua, ACCESS_SERVEROWNER, "Executes Lua code on yourself", "<Lua code>")
 
@@ -160,4 +160,4 @@ function PLUGIN:includecl_lua(ply, command, args)
 end
 PLUGIN:AddCommand("ic", PLUGIN.includecl_lua, ACCESS_SERVEROWNER, "Includes the specified file on the specified clients", "<Player name | SteamID | #UserID | @Team name> <Lua script filepath>")
 
-lemon.plugin:Register(PLUGIN)
+lemon.plugin.Register(PLUGIN)

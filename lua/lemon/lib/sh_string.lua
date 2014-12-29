@@ -7,7 +7,7 @@ local math_abs, math_min, math_floor, math_random = math.abs, math.min, math.flo
 local pairs, tonumber, tostring, type = pairs, tonumber, tostring, type
 local error = error
 
-function lemon.string:Levenshtein(s, t)
+function lemon.string.Levenshtein(s, t)
 	local d, sn, tn = {}, #s, #t
 	for i = 0, sn do d[i * tn] = i end
 	for j = 0, tn do d[j] = j end
@@ -21,7 +21,7 @@ function lemon.string:Levenshtein(s, t)
 	return d[#d]
 end
 
-function lemon.string:DamerauLevenshtein(s, t, lim)
+function lemon.string.DamerauLevenshtein(s, t, lim)
 	local s_len, t_len = #s, #t -- Calculate the sizes of the strings or arrays
 	if lim and math_abs(s_len - t_len) >= lim then -- If sizes differ by lim, we can stop here
 		return lim
@@ -78,11 +78,11 @@ function lemon.string:DamerauLevenshtein(s, t, lim)
 	return d[#d]
 end
 
-function lemon.string:StripQuotes(s)
+function lemon.string.StripQuotes(s)
 	return s:gsub("^[\"]*(.-)[\"]*[\r]?[\n]?$", "%1")
 end
 
-function lemon.string:SplitArgs(args)
+function lemon.string.SplitArgs(args)
 	if args == nil or args == "" then return nil end
 	local argv = {}
 	local argc = 0
@@ -135,7 +135,7 @@ local function AddLookup(CharSet)
 	return Lookup
 end
 
-function lemon.string:RandomString(Length, CharSet)
+function lemon.string.RandomString(Length, CharSet)
 	local CharSet = CharSet or "."
 
 	if CharSet == "" then
@@ -154,7 +154,7 @@ function lemon.string:RandomString(Length, CharSet)
 end
 
 local format_time = "%0.2i:%0.2i:%0.2i:%0.2i"
-function lemon.string:FormatTime(s)
+function lemon.string.FormatTime(s)
 	if not type(s) == "number" then return "00:00:00:00" end
 	local days = math_floor(s / 86400)
 	s = s - (days * 86400)
@@ -167,7 +167,7 @@ end
 
 local formatex_pattern = "({%d+})"
 local no_substitute_error = "No substitute found for {%i}."
-function lemon.string:Format(text, ...)
+function lemon.string.Format(text, ...)
 	local matched = {}
 	local substitutes = {...}
 
@@ -186,15 +186,15 @@ function lemon.string:Format(text, ...)
 	return text
 end
 
-function lemon.string:IsSteamIDValid(steamid)
+function lemon.string.IsSteamIDValid(steamid)
 	return type(steamid) == "string" and steamid:match("^STEAM_%d:%d:%d+$") ~= nil
 end
 
-function lemon.string:IsSteamID64Valid(steamid64)
+function lemon.string.IsSteamID64Valid(steamid64)
 	-- On SteamID64, the first 4 numbers *probably* will never change (at least, in a long time)
 	return type(steamid64) == "string" and steamid64:sub(1, 4) == "7656" and steamid64:match("^%d+$") ~= nil
 end
 
-function lemon.string:IsIPValid(ip)
+function lemon.string.IsIPValid(ip)
 	return type(steamid64) == "ip" and ip:match("^%d+.%d+.%d+.%d+$") ~= nil
 end

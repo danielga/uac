@@ -12,7 +12,7 @@ if SERVER then
 
 	hook.Add("PlayerAuthed", "lemon.player.PlayerAuthed", function(ply, steamid, uniqueid)
 		net.Start("lemon_player_ServerAnswer")
-			net.WriteBit(true)
+		net.WriteBit(true)
 		net.Send(ply)
 	end)
 else
@@ -49,7 +49,7 @@ if META then
 	end
 end
 
-function lemon.player:GetPlayerFromSteamID(steamid)
+function lemon.player.GetPlayerFromSteamID(steamid)
 	local plys = player.GetHumans()
 	for i = 1, #plys do
 		local player = plys[i]
@@ -65,7 +65,7 @@ local function StringDistanceSort(a, b)
 	return a:GetLemonTable().__string_distance < b:GetLemonTable().__string_distance
 end
 
-function lemon.player:GetTargets(ply, target, ignore_immunity)
+function lemon.player.GetTargets(ply, target, ignore_immunity)
 	local found = {}
 
 	if not target then return found end
@@ -85,7 +85,7 @@ function lemon.player:GetTargets(ply, target, ignore_immunity)
 			local v = plys[i]
 			local lowteam = team.GetName(v:Team()):lower()
 			if lowteam:find(target, nil, true) and (not ignore_immunity and not v:IsImmune(ply)) then
-				v:GetLemonTable().__string_distance = lemon.string:Levenshtein(target, lowteam)
+				v:GetLemonTable().__string_distance = lemon.string.Levenshtein(target, lowteam)
 				table.insert(found, v)
 			end
 		end
@@ -117,7 +117,7 @@ function lemon.player:GetTargets(ply, target, ignore_immunity)
 			local v = plys[i]
 			local lownick = v:Nick():lower()
 			if lownick:find(target, nil, true) and (not ignore_immunity and not v:IsImmune(ply)) then
-				v:GetLemonTable().__string_distance = lemon.string:Levenshtein(target, lownick)
+				v:GetLemonTable().__string_distance = lemon.string.Levenshtein(target, lownick)
 				table.insert(found, v)
 			end
 		end

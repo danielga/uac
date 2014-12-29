@@ -1,11 +1,11 @@
-local PLUGIN = lemon.plugin:New()
+local PLUGIN = lemon.plugin.New()
 
 PLUGIN.Name = "Player control"
 PLUGIN.Description = "Adds commands to control players."
 PLUGIN.Author = "Agent 47, DrogenViech"
 
 function PLUGIN:KickPlayer(ply, command, args)
-	local targets = lemon.player:GetTargets(ply, args[1], false)
+	local targets = lemon.player.GetTargets(ply, args[1], false)
 	local reason = table.concat(args, " ", 2) or ""
 	reason = reason:gsub("[;,:.\\/]", "_")
 
@@ -16,7 +16,7 @@ end
 PLUGIN:AddCommand("kick", PLUGIN.KickPlayer, ACCESS_KICK, "Kicks the specified user with optional reason", "<Player name | SteamID | #UserID | @Team name> [Reason]")
 
 function PLUGIN:Ban(ply, command, args)
-	local targets = lemon.player:GetTargets(ply, args[1], false)
+	local targets = lemon.player.GetTargets(ply, args[1], false)
 	local time = tonumber(args[2]) or 5
 	local reason = args[3] and table.concat(args, " ", 3) or "Banned for " .. time .. " minutes."
 	reason = reason:gsub("[;,:.\\/]", "_")
@@ -28,20 +28,20 @@ function PLUGIN:Ban(ply, command, args)
 			p:Kick(reason)
 		end
 	elseif args[1]:sub(1, 6) == "STEAM_" then
-		lemon.ban:Add(args[1], time, reason)
+		lemon.ban.Add(args[1], time, reason)
 	end
 end
 PLUGIN:AddCommand("ban", PLUGIN.Ban, ACCESS_BAN, "Bans the specified user with optional reason", "<Player name | SteamID | #UserID | @Team name> [Time] [Reason]")
 
 function PLUGIN:Unban(ply, command, args)
-	lemon.ban:Remove(args[1])
+	lemon.ban.Remove(args[1])
 end
 PLUGIN:AddCommand("unban", PLUGIN.Unban, ACCESS_BAN, "Removes a ban from the database", "<Player name | SteamID | #UserID | @Team name> [Reason]")
 
 --------------------------------------------------
 
 function PLUGIN:TrainFuck(ply, command, args)
-	local targets = lemon.player:GetTargets(ply, args[1], false)
+	local targets = lemon.player.GetTargets(ply, args[1], false)
 	
 	for i = 1, #targets do
 		local ply = targets[i]
@@ -68,7 +68,7 @@ end
 PLUGIN:AddCommand("trainfuck", PLUGIN.TrainFuck, ACCESS_SLAY, "Slays a player in a awesome way", "<Player name | SteamID | #UserID | @Team name>")
 
 function PLUGIN:TrainBan(ply, command, args)
-	local targets = lemon.player:GetTargets(ply, args[1], false)
+	local targets = lemon.player.GetTargets(ply, args[1], false)
 	local time = tonumber(args[2]) or 5
 	local reason = args[3] and table.concat(args, " ", 3) or "Banned for " .. time .. " minutes."
 	reason = reason:gsub("[;,:.\\/]", "_")
@@ -102,7 +102,7 @@ end
 PLUGIN:AddCommand("trainban", PLUGIN.TrainBan, ACCESS_BAN, "Bans a player in a awesome way", "<Player name | SteamID | #UserID | @Team name> [Time] [Reason]")
 
 function PLUGIN:TrainKick(ply, command, args)
-	local targets = lemon.player:GetTargets(ply, args[1], false)
+	local targets = lemon.player.GetTargets(ply, args[1], false)
 	local reason = table.concat(args, " ", 2) or ""
 	reason = reason:gsub("[;,:.\\/]", "_")
 	
@@ -129,7 +129,7 @@ PLUGIN:AddCommand("trainkick", PLUGIN.TrainKick, ACCESS_KICK, "Kicks a player in
 --------------------------------------------------
 
 function PLUGIN:Crash(ply, command, args)
-	local targets = lemon.player:GetTargets(ply, args[1], false)
+	local targets = lemon.player.GetTargets(ply, args[1], false)
 	
 	for i = 1, #targets do
 		targets[i]:Remove()
@@ -138,7 +138,7 @@ end
 PLUGIN:AddCommand("crash", PLUGIN.Crash, ACCESS_RCON, "Crashes a player", "<Player name | SteamID | #UserID | @Team name>")
 
 function PLUGIN:EnterVehicle(ply, command, args)
-	local targets = lemon.player:GetTargets(ply, args[1], false)
+	local targets = lemon.player.GetTargets(ply, args[1], false)
 	local vehicle = ply:GetEyeTrace().Entity
 	if IsValid(targets[1]) then
 		targets = targets[1]
@@ -156,7 +156,7 @@ end
 PLUGIN:AddCommand("enter", PLUGIN.EnterVehicle, ACCESS_SLAY, "Forces a user to enter the vehicle you're looking at", "<Player name | SteamID | #UserID | @Team name>")
 
 function PLUGIN:ExitVehicle(ply, command, args)
-	local targets = lemon.player:GetTargets(ply, args[1], false)
+	local targets = lemon.player.GetTargets(ply, args[1], false)
 
 	for i = 1, #targets do
 		local p = targets[i]
@@ -168,7 +168,7 @@ end
 PLUGIN:AddCommand("exit", PLUGIN.ExitVehicle, ACCESS_SLAY, "Forces the specified user to exit the vehicle he's in", "<Player name | SteamID | #UserID | @Team name>")
 
 function PLUGIN:Cexec(ply, command, args)
-	local targets = lemon.player:GetTargets(ply, args[1], false)
+	local targets = lemon.player.GetTargets(ply, args[1], false)
 	local execute = table.concat(args, " ", 2)
 	
 	for i = 1, #targets do
@@ -178,7 +178,7 @@ end
 PLUGIN:AddCommand("cexec", PLUGIN.Cexec, ACCESS_RCON, "Execute command on a user", "<Player name | SteamID | #UserID | @Team name> <Command(s)>")
 
 function PLUGIN:RespawnPlayer(ply, command, args)
-	local targets = lemon.player:GetTargets(ply, args[1], false)
+	local targets = lemon.player.GetTargets(ply, args[1], false)
 	
 	for i = 1, #targets do
 		local p = targets[i]
@@ -192,7 +192,7 @@ end
 PLUGIN:AddCommand("respawn", PLUGIN.RespawnPlayer, ACCESS_SLAY, "Respawns a user", "<Player name | SteamID | #UserID | @Team name>")
 
 function PLUGIN:SpawnPlayer(ply, command, args)
-	local targets = lemon.player:GetTargets(ply, args[1], false)
+	local targets = lemon.player.GetTargets(ply, args[1], false)
 	
 	for i = 1, #targets do
 		targets[i]:Spawn()
@@ -201,7 +201,7 @@ end
 PLUGIN:AddCommand("spawn", PLUGIN.SpawnPlayer, ACCESS_SLAY, "Spawns a user", "<Player name | SteamID | #UserID | @Team name>")
 
 function PLUGIN:SetHealth(ply, command, args)
-	local targets = lemon.player:GetTargets(ply, args[1], false)
+	local targets = lemon.player.GetTargets(ply, args[1], false)
 	local health = tonumber(args[2]) or 1
 	health = math.floor(math.Clamp(health, 1, 2147483647))
 	
@@ -215,7 +215,7 @@ end
 PLUGIN:AddCommand("hp", PLUGIN.SetHealth, ACCESS_SLAY, "Sets a users health", "<Player name | SteamID | #UserID | @Team name> <Health ammount>")
 
 function PLUGIN:EnableGod(ply, command, args)
-	local targets = lemon.player:GetTargets(ply, args[1], false)
+	local targets = lemon.player.GetTargets(ply, args[1], false)
 
 	for i = 1, #targets do
 		local p = targets[i]
@@ -228,7 +228,7 @@ end
 PLUGIN:AddCommand("god", PLUGIN.EnableGod, ACCESS_SLAY, "Enables godmode for a user", "<Player name | SteamID | #UserID | @Team name>")
 
 function PLUGIN:DisableGod(ply, command, args)
-	local targets = lemon.player:GetTargets(ply, args[1], false)
+	local targets = lemon.player.GetTargets(ply, args[1], false)
 
 	for i = 1, #targets do
 		local p = targets[i]
@@ -241,7 +241,7 @@ end
 PLUGIN:AddCommand("ungod", PLUGIN.DisableGod, ACCESS_SLAY, "Disables godmode for a user", "<Player name | SteamID | #UserID | @Team name>")
 
 function PLUGIN:Slay(ply, command, args)
-	local targets = lemon.player:GetTargets(ply, args[1], false)
+	local targets = lemon.player.GetTargets(ply, args[1], false)
 
 	for i = 1, #targets do
 		local p = targets[i]
@@ -255,7 +255,7 @@ end
 PLUGIN:AddCommand("slay", PLUGIN.Slay, ACCESS_SLAY, "Kills a user", "<Player name | SteamID | #UserID | @Team name>")
 
 function PLUGIN:SilentSlay(ply, command, args)
-	local targets = lemon.player:GetTargets(ply, args[1], false)
+	local targets = lemon.player.GetTargets(ply, args[1], false)
 	
 	for i = 1, #targets do
 		local p = targets[i]
@@ -269,7 +269,7 @@ end
 PLUGIN:AddCommand("sslay", PLUGIN.SilentSlay, ACCESS_SLAY, "Silently kills a user (no killicon and sound)", "<Player name | SteamID | #UserID | @Team name>")
 
 function PLUGIN:GiveWeapon(ply, command, args)
-	local targets = lemon.player:GetTargets(ply, args[1], false)
+	local targets = lemon.player.GetTargets(ply, args[1], false)
 	local wep = args[2]
 	
 	for i = 1, #targets do
@@ -282,7 +282,7 @@ end
 PLUGIN:AddCommand("give", PLUGIN.GiveWeapon, ACCESS_SLAY, "Gives the specified item to a user", "<Player name | SteamID | #UserID | @Team name> <Weapon name>")
 
 function PLUGIN:StripWeapons(ply, command, args)
-	local targets = lemon.player:GetTargets(ply, args[1], false)
+	local targets = lemon.player.GetTargets(ply, args[1], false)
 	
 	for i = 1, #targets do
 		local p = targets[i]
@@ -324,7 +324,7 @@ function PLUGIN:FindFreeSpace(ply, behind)
 end
 
 function PLUGIN:TeleTo(ply, command, args)
-	local target = lemon.player:GetTargets(ply, args[1], false)
+	local target = lemon.player.GetTargets(ply, args[1], false)
 	if IsValid(target[1]) then
 		target = target[1]
 	else
@@ -341,7 +341,7 @@ PLUGIN:AddCommand("tp", PLUGIN.TeleTo, ACCESS_SLAY, "Teleports yourself to the s
 PLUGIN:AddCommand("goto", PLUGIN.TeleTo, ACCESS_SLAY, "Teleports yourself to the specified user", "<Player name | SteamID | #UserID | @Team name>")
 
 function PLUGIN:Bring(ply, command, args)
-	local target = lemon.player:GetTargets(ply, args[1], false)
+	local target = lemon.player.GetTargets(ply, args[1], false)
 	if IsValid(target[1]) then
 		target = target[1]
 	else
@@ -364,7 +364,7 @@ PLUGIN:AddCommand("bring", PLUGIN.Bring, ACCESS_SLAY, "Bring the specified user 
 
 function PLUGIN:NoclipPlayer(ply, command, args)
 	if args[1] then
-		local targets = lemon.player:GetTargets(ply, args[1], false)
+		local targets = lemon.player.GetTargets(ply, args[1], false)
 
 		for i = 1, #targets do
 			local p = targets[i]
@@ -450,4 +450,4 @@ end
 PLUGIN:AddHook("Move", "Lemon player control plugin (accelerating bunny hopping)", PLUGIN.Move)
 ]]
 
-lemon.plugin:Register(PLUGIN)
+lemon.plugin.Register(PLUGIN)

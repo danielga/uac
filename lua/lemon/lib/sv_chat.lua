@@ -41,7 +41,7 @@ end
 hook.Add("PlayerSay", "lemon.chat.PlayerSay", function(ply, text, global)
 	if ply:GetLemonTable().IsGagged then return "" end
 
-	if lemon.config:GetValue("lemon_chat_prefixes"):find(text:sub(1, 1)) then
+	if lemon.config.GetValue("lemon_chat_prefixes"):find(text:sub(1, 1)) then
 		local command = (text:match("%w+") or ""):lower()
 		local arguments = {}
 		for match in text:sub(#command + 3):gmatch("[^,]+") do
@@ -49,7 +49,7 @@ hook.Add("PlayerSay", "lemon.chat.PlayerSay", function(ply, text, global)
 			table.insert(arguments, match)
 		end
 
-		if lemon.command:Run(ply, command, arguments) then
+		if lemon.command.Run(ply, command, arguments) then
 			--return ""
 		end
 	end
@@ -61,6 +61,6 @@ end)
 
 hook.Add("PlayerInitialSpawn", "lemon.chat.ChatPrefixesSync", function(ply)
 	net.Start("lemon_chat_CPS")
-		net.WriteString(lemon.config:GetValue("lemon_chat_prefixes") or "")
+	net.WriteString(lemon.config.GetValue("lemon_chat_prefixes") or "")
 	net.Send(ply)
 end)

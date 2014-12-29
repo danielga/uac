@@ -3,7 +3,7 @@ local users_list = {}
 
 hook.Remove("PlayerInitialSpawn", "PlayerAuthSpawn") -- we don't want stuff to break right?
 
-function lemon.auth:UpdateUserFlags(steamid, flags)
+function lemon.auth.UpdateUserFlags(steamid, flags)
 	if users_list[steamid] then
 		if users_list[steamid].flags == flags then
 			return
@@ -14,19 +14,19 @@ function lemon.auth:UpdateUserFlags(steamid, flags)
 		users_list[steamid] = {usergroup = "", flags = flags}
 	end
 
-	local prefix = lemon.sql:EscapeString(lemon.config:GetValue("lemon_prefix"))
-	steamid = lemon.sql:EscapeString(steamid)
+	local prefix = lemon.sql.EscapeString(lemon.config.GetValue("lemon_prefix"))
+	steamid = lemon.sql.EscapeString(steamid)
 
-	lemon.sql:Query("SELECT * FROM " .. prefix .. "_users WHERE steamid = '" .. steamid .. "'", function(succeeded, data)
+	lemon.sql.Query("SELECT * FROM " .. prefix .. "_users WHERE steamid = '" .. steamid .. "'", function(succeeded, data)
 		if succeeded and #data > 0 then
-			lemon.sql:Query("UPDATE " .. prefix .. "_users SET flags = '" .. lemon.sql:EscapeString(flags) .. "' WHERE steamid = '" .. steamid .. "'")
+			lemon.sql.Query("UPDATE " .. prefix .. "_users SET flags = '" .. lemon.sql:EscapeString(flags) .. "' WHERE steamid = '" .. steamid .. "'")
 		else
-			lemon.sql:Query("INSERT INTO " .. prefix .. "_users (steamid, flags) VALUES ('" .. steamid .. "', '" .. lemon.sql:EscapeString(flags) .. "')")
+			lemon.sql.Query("INSERT INTO " .. prefix .. "_users (steamid, flags) VALUES ('" .. steamid .. "', '" .. lemon.sql:EscapeString(flags) .. "')")
 		end
 	end)
 end
 
-function lemon.auth:UpdateUserGroup(steamid, usergroup)
+function lemon.auth.UpdateUserGroup(steamid, usergroup)
 	if users_list[steamid] then
 		if users_list[steamid].usergroup == usergroup then
 			return
@@ -37,22 +37,22 @@ function lemon.auth:UpdateUserGroup(steamid, usergroup)
 		users_list[steamid] = {usergroup = usergroup, flags = ""}
 	end
 
-	local prefix = lemon.sql:EscapeString(lemon.config:GetValue("lemon_prefix"))
-	steamid = lemon.sql:EscapeString(steamid)
+	local prefix = lemon.sql.EscapeString(lemon.config.GetValue("lemon_prefix"))
+	steamid = lemon.sql.EscapeString(steamid)
 
-	lemon.sql:Query("SELECT * FROM " .. prefix .. "_users WHERE steamid = '" .. steamid .. "'", function(succeeded, data)
+	lemon.sql.Query("SELECT * FROM " .. prefix .. "_users WHERE steamid = '" .. steamid .. "'", function(succeeded, data)
 		if succeeded and #data > 0 then
-			lemon.sql:Query("UPDATE " .. prefix .. "_users SET usergroup = '" .. lemon.sql:EscapeString(usergroup) .. "' WHERE steamid = '" .. steamid .. "'")
+			lemon.sql.Query("UPDATE " .. prefix .. "_users SET usergroup = '" .. lemon.sql:EscapeString(usergroup) .. "' WHERE steamid = '" .. steamid .. "'")
 		else
-			lemon.sql:Query("INSERT INTO " .. prefix .. "_users (steamid, usergroup) VALUES ('" .. steamid .. "', '" .. lemon.sql:EscapeString(usergroup) .. "')")
+			lemon.sql.Query("INSERT INTO " .. prefix .. "_users (steamid, usergroup) VALUES ('" .. steamid .. "', '" .. lemon.sql:EscapeString(usergroup) .. "')")
 		end
 	end)
 end
 
-function lemon.auth:LoadUsersList()
-	local prefix = lemon.sql:EscapeString(lemon.config:GetValue("lemon_prefix"))
+function lemon.auth.LoadUsersList()
+	local prefix = lemon.sql.EscapeString(lemon.config.GetValue("lemon_prefix"))
 
-	lemon.sql:Query("SELECT * FROM " .. prefix .. "_users", function(succeeded, data)
+	lemon.sql.Query("SELECT * FROM " .. prefix .. "_users", function(succeeded, data)
 		if succeeded and #data > 0 then
 			for i = 1, #data do
 				local plydata = data[i]
@@ -69,7 +69,7 @@ function lemon.auth:LoadUsersList()
 				end
 			end
 		else
-			lemon.sql:Query("CREATE TABLE " .. prefix .. "_users (steamid CHAR(20), usergroup CHAR(50), flags CHAR(50))")
+			lemon.sql.Query("CREATE TABLE " .. prefix .. "_users (steamid CHAR(20), usergroup CHAR(50), flags CHAR(50))")
 		end
 	end)
 end
@@ -82,7 +82,7 @@ hook.Add("PlayerAuthed", "lemon.auth.AuthPlayer", function(player)
 	end
 end)
 
-function lemon.auth:LoadUsersFile(filepath)
+function lemon.auth.LoadUsersFile(filepath)
 	local data = file.Read(filepath, "DATA")
 	if not data then return end
 	data = util.KeyValuesToTable(data)
@@ -91,19 +91,19 @@ function lemon.auth:LoadUsersFile(filepath)
 			steamid = steamid:upper()
 			users_list[steamid] = {usergroup = tbl.usergroup or "users", flags = tbl.flags or ""}
 
-			local player = lemon.player:GetPlayerFromSteamID(steamid)
+			local player = lemon.player.GetPlayerFromSteamID(steamid)
 			if IsValid(player) and player:IsPlayer() then
 				player:SetUserGroup(data.usergroup)
 				player:SetUserFlags(data.flags)
 			else
-				self:UpdateUserGroup(steamid, data.usergroup)
-				self:UpdateUserFlags(steamid, data.flags)
+				lemon.auth.UpdateUserGroup(steamid, data.usergroup)
+				lemon.auth.UpdateUserFlags(steamid, data.flags)
 			end
 		end
 	end
 end
 
-function lemon.auth:SaveUsersFile(filepath)
+function lemon.auth.SaveUsersFile(filepath)
 	local data = util.TableToKeyValues(users_list)
 	if not data then return end
 	data = data:gsub("[^\n]*", "\"Users\"")
@@ -152,6 +152,6 @@ if not file.Exists("lemon/default_users.txt", "DATA") then
 end
 
 hook.Add("Initialize", "lemon.Auth.LoadUsers", function()
-	lemon.auth:LoadUsersFile("lemon/users.txt")
-	lemon.auth:LoadUsersList()
+	lemon.auth.LoadUsersFile("lemon/users.txt")
+	lemon.auth.LoadUsersList()
 end)
