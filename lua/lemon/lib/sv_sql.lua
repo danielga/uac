@@ -43,24 +43,24 @@ function lemon.sql.Connect(recreate)
 	end
 
 	if (lemon.config.GetValue("sql_connection_type") == "remote" or lemon.config.GetValue("sql_connection_type") == "sourcebans") and not lemon.config.GetBool("sql_redirected") then
-		if recreate or self.DatabaseConnection == nil then
-			self.Initialized = false
-			self.Retrying = false
+		if recreate or lemon.sql.DatabaseConnection == nil then
+			lemon.sql.Initialized = false
+			lemon.sql.Retrying = false
 
-			self.DatabaseConnection = mysqloo.connect(lemon.config.GetValue("sql_host"), lemon.config.GetValue("sql_username"), lemon.config.GetValue("sql_password"), lemon.config.GetValue("sql_database"), lemon.config.GetNumber("sql_host_port"))
-			if self.DatabaseConnection == nil then
+			lemon.sql.DatabaseConnection = mysqloo.connect(lemon.config.GetValue("sql_host"), lemon.config.GetValue("sql_username"), lemon.config.GetValue("sql_password"), lemon.config.GetValue("sql_database"), lemon.config.GetNumber("sql_host_port"))
+			if lemon.sql.DatabaseConnection == nil then
 				RetryConnection()
 				return false
 			end
 			
-			self.DatabaseConnection.onConnected = ConnectSuccessCallback
-			self.DatabaseConnection.onConnectionFailed = ConnectFailureCallback
+			lemon.sql.DatabaseConnection.onConnected = ConnectSuccessCallback
+			lemon.sql.DatabaseConnection.onConnectionFailed = ConnectFailureCallback
 		end
 
-		self.DatabaseConnection:connect()
+		lemon.sql.DatabaseConnection:connect()
 	else
-		self.Initialized = true
-		self.Retrying = false
+		lemon.sql.Initialized = true
+		lemon.sql.Retrying = false
 	end
 
 	return true
@@ -115,8 +115,8 @@ function lemon.sql.Query(query, callback, userdata)
 			HTTP({url = lemon.config.GetValue("sql_redirector_url"), method = "post", parameters = parameters, success = success, failed = failed})
 			return true
 		else
-			if self.Initialized and not self.Retrying then
-				local databasequery = self.DatabaseConnection:query(query)
+			if lemon.sql.Initialized and not lemon.sql.Retrying then
+				local databasequery = lemon.sql.DatabaseConnection:query(query)
 				if databasequery ~= nil then
 					databasequery.Callback = callback
 					databasequery.Userdata = userdata
