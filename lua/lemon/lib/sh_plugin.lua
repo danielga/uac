@@ -85,21 +85,21 @@ function lemon.plugin.Register(plugin)
 	return lemon.plugin.Load(plugin)
 end
 
-function lemon.plugin.Include(file)
-	if file then
-		local prefix = file:sub(1, 3)
+function lemon.plugin.Include(path)
+	if path then
+		local prefix = path:sub(1, 3)
 		if SERVER and prefix == "sv_" then
-			include("lemon/plugins/" .. file)
+			include("lemon/plugins/" .. path)
 		elseif prefix == "sh_" then
-			include("lemon/plugins/" .. file)
+			include("lemon/plugins/" .. path)
 			if SERVER then
-				AddCSLuaFile("lemon/plugins/" .. file)
+				AddCSLuaFile("lemon/plugins/" .. path)
 			end
 		elseif prefix == "cl_" then
 			if CLIENT then
-				include("lemon/plugins/" .. file)
+				include("lemon/plugins/" .. path)
 			else
-				AddCSLuaFile("lemon/plugins/" .. file)
+				AddCSLuaFile("lemon/plugins/" .. path)
 			end
 		end
 	else
