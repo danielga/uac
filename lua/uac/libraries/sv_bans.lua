@@ -40,15 +40,15 @@ local function GetQuery(querytype)
 	local query
 	local tblprefix
 
-	if uac.config:GetValue("sql_connection_type") == "sourcebans" then
+	if uac.config.GetValue("sql_connection_type") == "sourcebans" then
 		query = SourceBansQueries[querytype]
-		tblprefix = uac.config:GetValue("sourcebans_prefix")
+		tblprefix = uac.config.GetValue("sourcebans_prefix")
 	else
 		query = UACBansQueries[querytype]
-		tblprefix = uac.config:GetValue("uac_prefix")
+		tblprefix = uac.config.GetValue("uac_prefix")
 	end
 
-	if query then return uac.string:Format(query, tblprefix) end
+	if query then return uac.string.Format(query, tblprefix) end
 end
 
 ----------------------------------------------------------------
@@ -175,7 +175,7 @@ local function AddBan(succeeded, data, userdata)
 			query = uac.string.Format(GetQuery("Ban player by IP"), userdata.IP, userdata.Name, userdata.Length, userdata.Reason, userdata.AdminSteamID, userdata.AdminIP, serverip, serverport)
 		end
 			
-		uac.sql:Query(query, VerifyBan, userdata)
+		uac.sql.Query(query, VerifyBan, userdata)
 	else
 		if IsValid(userdata.Player) then
 			userdata.Player:GetUACTable().LastBanUpdate = CurTime()
