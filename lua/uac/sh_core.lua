@@ -1,5 +1,9 @@
 uac = uac or {}
 
+if not file.IsDir("uac", "DATA") then
+	file.CreateDir("uac")
+end
+
 function uac.IncludeLibrary(path)
 	if path then
 		if file.IsDir(("uac/libraries/%s"):format(path), "LUA") then
