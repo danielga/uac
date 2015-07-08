@@ -1,3 +1,7 @@
+-- Synchronize unicode data through data library
+-- Either add a new library for file sending and use a table named files
+-- or add a table for unicode with the same name as itself
+
 uac.unicode = uac.unicode or {
 	uppercase = {},
 	lowercase = {},
