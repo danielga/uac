@@ -246,7 +246,7 @@ end
 
 local Character = uac.unicode.Character
 function uac.unicode.ParseUnicodeData()
-	local data = file_Read("data/uac/unicodedata8.0.0.txt", "GAME")
+	local data = file_Read("data/uac/unicode/8.0.0.txt", "GAME")
 	if data == nil then
 		return false
 	end
