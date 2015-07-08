@@ -1,19 +1,17 @@
 include("shared.lua")
 
-local autocomfmt = "%s%s"
-local autocomusage = "%s%s%s%s"
 function uac.command.GetAutoComplete(prefix, command, argstr, showusage)
 	local ply = LocalPlayer()
 	local candidates = {}
 	for com, tab in pairs(uac.command.GetList()) do
 		if string.sub(com, 1, #command) == command then
 			if showusage then
-				table.insert(candidates, string.format(autocomusage, prefix, com, tab:GetUsage()))
+				table.insert(candidates, string.format("%s%s%s%s", prefix, com, tab:GetUsage()))
 			else
 				local autocompletes = tab:GetAutoComplete(ply, argstr)
 				for i = 1, #autocompletes do
 					local space, ac = autocompletes[i] ~= "" and " " or "", autocompletes[i]
-					table.insert(candidates, string.format(autocomusage, prefix, com, space, ac))
+					table.insert(candidates, string.format("%s%s%s%s", prefix, com, space, ac))
 				end
 			end
 		end

@@ -11,10 +11,10 @@ local mysql = uac.sql.mysql
 function mysql.Initialize()
 	if mysql.dbconnection == nil then
 		local con, err = tmysql.initialize(
-			uac.config.GetValue("sql_host"),
-			uac.config.GetValue("sql_username"),
-			uac.config.GetValue("sql_password"),
-			uac.config.GetValue("sql_database"),
+			uac.config.GetString("sql_host"),
+			uac.config.GetString("sql_username"),
+			uac.config.GetString("sql_password"),
+			uac.config.GetString("sql_database"),
 			uac.config.GetNumber("sql_host_port")
 		)
 		if con == nil then

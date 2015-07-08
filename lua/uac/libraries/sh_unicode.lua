@@ -21,18 +21,14 @@ if not file.IsDir("uac/unicode", "DATA") then
 end
 
 local tonumber = tonumber
-local string_gmatch = string.gmatch
-local string_gsub = string.gsub
 local string_sub = string.sub
 local string_char = string.char
-local string_format = string.format
 local string_byte = string.byte
 local string_Split = string.Split
 local string_Trim = string.Trim
 local math_floor = math.floor
 local table_concat = table.concat
 local file_Read = file.Read
-local lshift = bit.lshift
 
 function uac.unicode.CodePoint(seq, offset)
 	if #seq == 0 then

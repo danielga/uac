@@ -83,17 +83,15 @@ function uac.string.DamerauLevenshtein(s, t, lim)
 	return d[#d]
 end
 
-local formatex_pattern = "({%d+})"
-local no_substitute_error = "No substitute found for {%i}."
 function uac.string.Format(text, ...)
 	local matched = {}
 	local substitutes = {...}
 
-	for match in string_gmatch(text, formatex_pattern) do
+	for match in string_gmatch(text, "({%d+})") do
 		local match_number = tonumber(string_sub(match, 2, -2))
 		if match_number ~= nil and matched[match_number] == nil then
 			if substitutes[match_number] == nil then
-				error(string_format(no_substitute_error, match_number))
+				error(string_format("No substitute found for {%i}.", match_number))
 			end
 
 			matched[match_number] = true
