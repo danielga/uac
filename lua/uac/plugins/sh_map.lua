@@ -3,37 +3,32 @@ PLUGIN.Description = "Adds commands to restart/change maps."
 PLUGIN.Author = "MetaMan"
 
 function PLUGIN:ChangeMap(ply, map, time)
-	time = math.max(time or 0, 0)
-
-	timer.Create("uac_mapchange", time, 1, function()
+	timer.Create("uac_changemap", time, 1, function()
 		game.ConsoleCommand("changelevel " .. map .. "\n")
 	end)
 end
-PLUGIN:AddCommand("mapchange", PLUGIN.ChangeMap)
+PLUGIN:AddCommand("changemap", PLUGIN.ChangeMap)
 	:SetAccess(ACCESS_MAP)
 	:SetDescription("Changes the map")
 	:AddParameter(uac.command.string)
-	:AddParameter(uac.command.number)
+	:AddParameter(uac.command.number(0, math.huge, 0))
 
-function PLUGIN:CancelMapChange(ply, command, args)
-	timer.Destroy("uac_mapchange")
+function PLUGIN:CancelChangeMap(ply, command, args)
+	timer.Destroy("uac_changemap")
 end
-PLUGIN:AddCommand("cancelmapchange", PLUGIN.CancelMapChange)
+PLUGIN:AddCommand("cancelchangemap", PLUGIN.CancelChangeMap)
 	:SetAccess(ACCESS_MAP)
-	:SetDescription("Cancels mapchange")
+	:SetDescription("Cancels changemap")
 
 function PLUGIN:RestartMap(ply, time)
-	local map = game.GetMap()
-	time = math.max(time or 0, 0)
-
 	timer.Create("uac_restartmap", time, 1, function()
-		game.ConsoleCommand("changelevel " .. map .. "\n")
+		game.ConsoleCommand("changelevel " .. game.GetMap() .. "\n")
 	end)
 end
 PLUGIN:AddCommand("restart", PLUGIN.RestartMap)
 	:SetAccess(ACCESS_MAP)
 	:SetDescription("Restarts the current map")
-	:AddParameter(uac.command.number)
+	:AddParameter(uac.command.number(0, math.huge, 0))
 
 function PLUGIN:CancelRestartMap(ply, command, args)
 	timer.Destroy("uac_restartmap")

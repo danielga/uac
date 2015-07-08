@@ -21,29 +21,39 @@ function uac.config.Get(name)
 end
 
 function uac.config.SetValue(name, value)
-	if not uac.config.Exists(name) then return end
+	if not uac.config.Exists(name) then
+		return
+	end
 
 	config_list[name].value = value
 end
 
 function uac.config.GetValue(name, default)
 	local conf = uac.config.Get(name)
-	return conf and conf.value or default
+	return conf ~= nil and conf.value or default
+end
+
+local function tobool(val)
+	if val == false or val == 0 or val == "false" then
+		return false
+	end
+
+	return (val == true or val == 1 or val == "true") and true or nil
 end
 
 function uac.config.GetBool(name, default)
-	local value = uac.config.GetValue(name)
-	return value == nil and default or (value == true or value == "true" or value == 1)
+	local value = tobool(uac.config.GetValue(name))
+	return value ~= nil and value or default
 end
 
 function uac.config.GetString(name, default)
 	local value = uac.config.GetValue(name)
-	return value == nil and default or tostring(value)
+	return (value ~= nil and value ~= "") and tostring(value) or default
 end
 
 function uac.config.GetNumber(name, default)
-	local value = uac.config.GetValue(name)
-	return value == nil and default or tonumber(value)
+	local value = tonumber(uac.config.GetValue(name))
+	return value ~= nil and value or default
 end
 
 function uac.config.GetList()
@@ -51,7 +61,6 @@ function uac.config.GetList()
 end
 
 function uac.config.Reset()
-	--much better than setting each value to nil
 	config_list = {}
 end
 
@@ -140,22 +149,6 @@ if not file.Exists("uac/default_config.txt", "DATA") then
 		"value"			""
 		"type"			"string"
 	}
-	// The next setting allows you to tell UAC to use the PHP redirection script (only for remote and sourcebans)
-	// Redirection is useful for "remote" databases that don't allow remote access (those free webhosts) and only requires a database and a PHP script with JSON output (the only additional info it needs is the database name, username and a password, defined above)
-	"sql_redirected"
-	{
-		"name"			"SQL redirection"
-		"description"	"Defines whether or not UAC should use a website script to transfer data between the database"
-		"value"			"false"
-		"type"			"boolean"
-	}
-	"sql_redirector_url"
-	{
-		"name"			"SQL redirector"
-		"description"	"Defines the URL for the script that redirects remote SQL queries to the real database"
-		"value"			"false"
-		"type"			"boolean"
-	}
 
 	// SQL details for databases of "sourcebans" type
 	"sourcebans_prefix"
@@ -171,8 +164,8 @@ if not file.Exists("uac/default_config.txt", "DATA") then
 	{
 		"name"			"UAC tables prefix"
 		"description"	"Allows UAC to correctly identify its tables (eg. uac_bans)"
-		"value"			"sb"
-		"type"			"uac"
+		"value"			"uac"
+		"type"			"string"
 	}
 }]])
 end

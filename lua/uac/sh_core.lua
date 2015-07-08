@@ -1,4 +1,8 @@
-uac = uac or {}
+uac = uac or {
+	libraries = {}
+}
+
+local included_libs = uac.libraries
 
 if not file.IsDir("uac", "DATA") then
 	file.CreateDir("uac")
@@ -12,10 +16,13 @@ function uac.IncludeLibrary(path)
 			local cl_file = ("uac/libraries/%s/client.lua"):format(path)
 
 			if file.Exists(sv_file, "LUA") and SERVER then
+				print("[UAC] Library: " .. path)
 				include(sv_file)
 			elseif file.Exists(cl_file, "LUA") and CLIENT then
+				print("[UAC] Library: " .. path)
 				include(cl_file)
 			elseif file.Exists(sh_file, "LUA") then
+				print("[UAC] Library: " .. path)
 				include(sh_file)
 			end
 		else
@@ -24,6 +31,8 @@ function uac.IncludeLibrary(path)
 			local cl_file = ("uac/libraries/cl_%s.lua"):format(path)
 
 			if file.Exists(sh_file, "LUA") then
+				print("[UAC] Library: " .. path)
+
 				if SERVER then
 					AddCSLuaFile(sh_file)
 				end
@@ -32,10 +41,14 @@ function uac.IncludeLibrary(path)
 			end
 
 			if file.Exists(sv_file, "LUA") and SERVER then
+				print("[UAC] Library: " .. path)
+
 				include(sv_file)
 			end
 
 			if file.Exists(cl_file, "LUA") then
+				print("[UAC] Library: " .. path)
+
 				if CLIENT then
 					include(cl_file)
 				else
@@ -44,22 +57,20 @@ function uac.IncludeLibrary(path)
 			end
 		end
 	else
-		local included_libs = {}
-
 		local files, directories = file.Find("uac/libraries/*", "LUA")
 		for i = 1, #files do
 			local match = files[i]:match("^%a%a_(%w+)%.lua$")
 			if not included_libs[match] then
-				included_libs[match] = true
 				uac.IncludeLibrary(match)
+				included_libs[match] = uac[match] or true
 			end
 		end
 
 		for i = 1, #directories do
 			local dir = directories[i]
 			if not included_libs[dir] then
-				included_libs[dir] = true
 				uac.IncludeLibrary(dir)
+				included_libs[dir] = uac[dir] or true
 			end
 		end
 	end

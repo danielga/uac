@@ -1,95 +1,8 @@
 uac.command = uac.command or {
-	list = {},
-	boolean = {
-		Process = function(self, ply, arg)
-			return tobool(arg)
-		end,
-		AutoComplete = function(self, ply, arg)
-			if arg ~= nil then
-				local autocomplete = {}
-				if ("true"):find("^" .. arg, 1, true) then
-					table.insert(autocomplete, "true")
-				elseif ("false"):find("^" .. arg, 1, true) then
-					table.insert(autocomplete, "false")
-				end
-
-				return autocomplete
-			end
-
-			return {"true", "false"}
-		end,
-		Usage = function(self)
-			return "<true | false>"
-		end
-	},
-	number = {
-		Process = function(self, ply, arg)
-			return tonumber(arg)
-		end,
-		AutoComplete = function(self, ply, arg)
-			local num = tonumber(arg)
-			return {num ~= nil and tostring(num) or ""}
-		end,
-		Usage = function(self)
-			return "<number>"
-		end
-	},
-	string = {
-		Process = function(self, ply, arg)
-			return arg
-		end,
-		AutoComplete = function(self, ply, arg)
-			return {arg or ""}
-		end,
-		Usage = function(self)
-			return "<string>"
-		end
-	},
-	player = {
-		Process = function(self, ply, arg)
-			return uac.player.GetTargets(ply, arg)[1]
-		end,
-		AutoComplete = function(self, ply, arg)
-			local targets, type = uac.player.GetTargets(ply, arg)
-			if #targets == 0 then
-				targets = player.GetAll()
-				type = "all"
-			end
-
-			local autocomplete = {}
-			for i = 1, #targets do
-				table.insert(autocomplete, targets[i]:Nick())
-			end
-
-			return autocomplete
-		end,
-		Usage = function(self)
-			return "<@teamname | #userid | steamid | playername>"
-		end
-	},
-	players = {
-		Process = function(self, ply, arg)
-			return uac.player.GetTargets(ply, arg)
-		end,
-		AutoComplete = function(self, ply, arg)
-			local targets, type = uac.player.GetTargets(ply, arg)
-			if #targets == 0 then
-				targets = player.GetAll()
-				type = "all"
-			end
-
-			local autocomplete = {}
-			for i = 1, #targets do
-				table.insert(autocomplete, targets[i]:Nick())
-			end
-
-			return autocomplete
-		end,
-		Usage = function(self)
-			return "<@teamname | #userid | steamid | playername>"
-		end
-	}
+	list = {}
 }
+
+include("types.lua")
 
 local command_list = uac.command.list
 
@@ -104,8 +17,15 @@ function COMMAND:GetParameter(num)
 	return self.parameters[num]
 end
 
-function COMMAND:AddParameter(param)
-	table.insert(self.parameters, param)
+function COMMAND:AddParameter(parameter)
+	if isfunction(parameter) then
+		parameter = parameter() -- check result
+
+	else
+		assert(istable(parameter), "incorrect type for parameter") -- check parameter
+	end
+
+	table.insert(self.parameters, parameter)
 	return self
 end
 
@@ -145,34 +65,36 @@ function COMMAND:GetUsage()
 
 	local args = {}
 	for i = 1, numparams do
-		local res = parameters[i].Usage()
+		local res = parameters[i]:Usage()
 		table.insert(args, res)
 	end
 
 	return table.concat(args, ",")
 end
 
+local function ReturnNothing() end
+
 local function GetSplitter(argstr)
-	local pos = 1
+	if argstr == nil then
+		return ReturnNothing
+	end
+
+	local strlen = #argstr
+	local pos = strlen > 0 and 1 or 0
 	return function(all)
-		if not pos then
+		if pos > strlen then
 			return
 		end
 
 		if all then
-			local data = argstr:sub(pos)
-			pos = nil
-			return data
+			pos = strlen + 1
+			return string.sub(argstr, pos)
 		end
 
-		local match = argstr:match("[^,]+", pos)
-		if match then
-			match = match:Trim()
-			if pos + #match < #argstr then
-				pos = pos + #match + 1
-			else
-				pos = nil
-			end
+		local match = string.match(argstr, "[^,]*", pos)
+		if match ~= nil then
+			pos = pos + #match + 1
+			match = string.Trim(match)
 		end
 
 		return match
@@ -182,6 +104,8 @@ end
 local function AutoCompleteBranch(tab, branches)
 	if #tab == 0 then
 		return branches
+	elseif #branches == 0 then
+		return tab
 	end
 
 	local autocomplete = {}
@@ -195,21 +119,21 @@ local function AutoCompleteBranch(tab, branches)
 end
 
 function COMMAND:GetAutoComplete(ply, argstr)
+	local parameters = self:GetParameters()
+	local splitter = GetSplitter(argstr)
 	local autocomplete = {}
-	if argstr ~= nil then
-		local splitter = GetSplitter(argstr)
-		local parameters = self:GetParameters()
-		for i = 1, #parameters do
-			local data = splitter()
-			local res = parameters[i].AutoComplete(nil, ply, data)
-			autocomplete = AutoCompleteBranch(autocomplete, res)
+	for i = 1, #parameters do
+		local data = splitter()
+		if data == nil then
+			break -- no more data, stop trying to autocomplete
 		end
-	else
-		local parameters = self:GetParameters()
-		for i = 1, #parameters do
-			local res = parameters[i].AutoComplete(nil, ply)
-			autocomplete = AutoCompleteBranch(autocomplete, res)
-		end
+
+		local res = parameters[i]:AutoComplete(ply, data)
+		autocomplete = AutoCompleteBranch(autocomplete, res)
+	end
+
+	if #autocomplete == 0 then
+		table.insert(autocomplete, "")
 	end
 
 	return autocomplete
@@ -225,17 +149,21 @@ function COMMAND:Call(ply, argstr)
 	local args = {}
 	for i = 1, #parameters do
 		local data = splitter()
-		local res = parameters[i].Process(nil, ply, data)
-		table.insert(args, res)
+		local result, err = parameters[i]:Process(ply, data)
+		if result == nil then
+			return false, err
+		end
+
+		table.insert(args, result)
 	end
 
 	return pcall(self.callback, ply, unpack(args))
 end
 
 function uac.command.Split(str)
-	local command = str:match("^([^%s]+)") or ""
-	local argstr = str:sub(#command + 2)
-	return command, (argstr ~= nil and #argstr > 0) and argstr or nil
+	local command = string.match(str, "^([^%s]*)")
+	local argstrpos = #command + 2
+	return command, argstrpos - 1 <= #str and string.sub(str, argstrpos) or nil
 end
 
 function uac.command.Get(name)
@@ -284,35 +212,35 @@ function uac.command.Remove(name)
 end
 
 function uac.command.Run(ply, command, argstr)
-	command = command:lower()
+	command = string.lower(command)
 	local cmd = command_list[command]
 	if cmd ~= nil then
 		if ply:HasUserFlag(cmd.flag) then
 			local did, err = cmd:Call(ply, argstr)
 			if not did then
-				ply:ChatText(Color(255, 0, 0, 255), "[UAC] ", Color(255, 255, 255, 255), "Error: '" .. err .. "'.")
+				ply:ChatText(uac.color.red, "[UAC] ", uac.color.white, "Error: '" .. err .. "'.")
 				return false
 			end
 
 			return true
 		else
-			ply:ChatText(Color(255, 0, 0, 255), "[UAC] ", Color(255, 255, 255, 255), "Error: You need the '" .. cmd.flag .. "' flag in order to use this command.")
+			ply:ChatText(uac.color.red, "[UAC] ", uac.color.white, "Error: You need the '" .. cmd.flag .. "' flag in order to use this command.")
 			return false
 		end
 	end
 
-	local closest_command = nil
-	local closest_distance = nil
+	local closest_command = ""
+	local closest_distance = math.huge
 	for com, _ in pairs(command_list) do
 		local distance = uac.string.Levenshtein(command, com)
-		if closest_distance == nil or distance < closest_distance then
+		if distance < closest_distance then
 			closest_distance = distance
 			closest_command = com
 		end
 	end
 
-	if closest_distance and closest_distance <= 0.25 * #closest_command then
-		ply:ChatText(Color(255, 0, 0, 255), "[UAC] ", Color(255, 255, 255, 255), "Did you mean '" .. closest_command .. "'?")
+	if closest_distance <= 0.25 * #closest_command then
+		ply:ChatText(uac.color.red, "[UAC] ", uac.color.white, "Did you mean '" .. closest_command .. "'?")
 	end
 
 	return false

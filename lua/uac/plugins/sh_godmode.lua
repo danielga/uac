@@ -5,7 +5,7 @@ PLUGIN.Author = "MetaMan"
 function PLUGIN:EnableGod(ply, target)
 	if target:Alive() then
 		target:GodEnable()
-		target:GetUACTable().GodMode = true
+		target:UACGetTable().godmode = true
 	end
 end
 PLUGIN:AddCommand("god", PLUGIN.EnableGod)
@@ -16,7 +16,7 @@ PLUGIN:AddCommand("god", PLUGIN.EnableGod)
 function PLUGIN:DisableGod(ply, target)
 	if target:Alive() then
 		target:GodDisable()
-		target:GetUACTable().GodMode = false
+		target:UACGetTable().godmode = false
 	end
 end
 PLUGIN:AddCommand("ungod", PLUGIN.DisableGod)
@@ -25,7 +25,7 @@ PLUGIN:AddCommand("ungod", PLUGIN.DisableGod)
 	:AddParameter(uac.command.player)
 
 function PLUGIN:EntityTakeDamage(victim, dmginfo)
-	if victim:IsPlayer() and victim:GetUACTable().GodMode then
+	if victim:IsPlayer() and victim:UACGetTable().godmode then
 		dmginfo:SetDamage(0)
 	end
 end

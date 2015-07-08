@@ -12,4 +12,4 @@ end
 PLUGIN:AddCommand("respawn", PLUGIN.RespawnPlayer)
 	:SetAccess(ACCESS_SLAY)
 	:SetDescription("Respawns a user")
-	:AddParameter(uac.command.player)
+	:AddParameter(uac.command.player(uac.command.optional))

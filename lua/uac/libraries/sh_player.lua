@@ -11,7 +11,7 @@ end
 
 local PLAYER = FindMetaTable("Player")
 
-function PLAYER:GetUACTable()
+function PLAYER:UACGetTable()
 	if not self.__uac then
 		self.__uac = {}
 	end
@@ -49,19 +49,40 @@ function uac.player.GetPlayerFromSteamID(steamid)
 	return NULL
 end
 
+local function ReversePlayerList(list)
+	local reverse = {}
+	local players = player.GetAll()
+	for i = 1, #players do
+		local ply = players[i]
+		if not table.HasValue(list, ply) then
+			table.insert(reverse, ply)
+		end
+	end
+
+	return reverse
+end
+
+local function CompareStrings(target, possible)
+	local targetlen = #target
+	local targetdist = targetlen * 0.5
+
+	local distance = uac.string.Levenshtein(target, possible)
+	return uac.unicode.Similar(possible, target) or distance <= targetdist, distance
+end
+
 local function StringDistanceSort(a, b)
-	return a:GetUACTable().__string_distance < b:GetUACTable().__string_distance
+	return a:UACGetTable().__string_distance < b:UACGetTable().__string_distance
 end
 
 function uac.player.GetTargets(ply, target, ignore_immunity)
 	local found = {}
 
-	if not target then
+	if target == nil then
 		return found
 	end
 
-	target = target:gsub("^%s*(.-)%s*$", "%1")
-	if not target or target == "" then
+	target = target:Trim()
+	if target == nil or target == "" then
 		return found
 	end
 
@@ -70,32 +91,41 @@ function uac.player.GetTargets(ply, target, ignore_immunity)
 		return plys
 	end
 
-	local pre, reverse = target:sub(1, 1), false
+	local pre, reverse = string.sub(target, 1, 1), false
 	if pre == "!" then
-		pre, target, reverse = target:sub(2, 2), target:sub(3), true
-	else
-		target = target:sub(2)
+		pre, target, reverse = string.sub(target, 2, 2), string.sub(target, 2), true
 	end
 
 	local type
 	if pre == "@" then
 		type = "teamname"
-		target = target:lower()
+		target = string.lower(string.sub(target, 2))
 
 		for i = 1, #plys do
 			local v = plys[i]
-			local lowteam = team.GetName(v:Team()):lower()
-			if lowteam:find(target, nil, true) and (not ignore_immunity and not v:IsImmune(ply)) then
-				v:GetUACTable().__string_distance = uac.string.Levenshtein(target, lowteam)
-				table.insert(found, v)
+			local lowteam = string.lower(team.GetName(v:Team()))
+			if ignore_immunity or not v:IsImmune(ply) then
+				local good, distance = CompareStrings(target, lowteam)
+				if good then
+					v:UACGetTable().__string_distance = distance
+					table.insert(found, v)					
+				end
 			end
 		end
 
+		if reverse then
+			found = ReversePlayerList(found)
+		end
+
 		table.sort(found, StringDistanceSort)
+
+		for i = 1, #found do
+			found[i]:UACGetTable().__string_distance = nil
+		end
 	elseif pre == "#" then
 		type = "userid"
 
-		local userid = tonumber(target)
+		local userid = tonumber(string.sub(target, 2))
 		if userid == nil then
 			return found, type
 		end
@@ -106,7 +136,11 @@ function uac.player.GetTargets(ply, target, ignore_immunity)
 				table.insert(found, v)
 			end
 		end
-	elseif target:match("^STEAM_[0-5]:[0-9]:[0-9]+$") then
+
+		if reverse then
+			found = ReversePlayerList(found)
+		end
+	elseif uac.string.IsSteamIDValid(target) then
 		type = "steamid"
 
 		for i = 1, #plys do
@@ -115,20 +149,35 @@ function uac.player.GetTargets(ply, target, ignore_immunity)
 				table.insert(found, v)
 			end
 		end
+
+		if reverse then
+			found = ReversePlayerList(found)
+		end
 	else
 		type = "name"
-		target = target:lower()
+		target = string.lower(target)
 
 		for i = 1, #plys do
 			local v = plys[i]
-			local lownick = v:Nick():lower()
-			if lownick:find(target, nil, true) and (not ignore_immunity and not v:IsImmune(ply)) then
-				v:GetUACTable().__string_distance = uac.string.Levenshtein(target, lownick)
-				table.insert(found, v)
+			local lownick = string.lower(v:Nick())
+			if ignore_immunity or not v:IsImmune(ply) then
+				local good, distance = CompareStrings(target, lownick)
+				if good then
+					v:UACGetTable().__string_distance = distance
+					table.insert(found, v)					
+				end
 			end
 		end
 
+		if reverse then
+			found = ReversePlayerList(found)
+		end
+
 		table.sort(found, StringDistanceSort)
+
+		for i = 1, #found do
+			found[i]:UACGetTable().__string_distance = nil
+		end
 	end
 
 	return found, type

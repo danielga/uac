@@ -31,11 +31,8 @@ PLUGIN:AddCommand("trainfuck", PLUGIN.TrainFuck)
 	:SetAccess(ACCESS_SLAY)
 	:SetDescription("Slays a player in a awesome way")
 	:AddParameter(uac.command.players)
-	:AddParameter(uac.command.string)
 
 function PLUGIN:TrainBan(ply, target, time, reason)
-	time = time or 5
-	reason = reason or ("Banned for " .. time .. " minutes.")
 	reason = reason:gsub("[;,:.\\/]", "_")
 	
 	target:SetMoveType(MOVETYPE_WALK)
@@ -69,11 +66,10 @@ PLUGIN:AddCommand("trainban", PLUGIN.TrainBan)
 	:SetAccess(ACCESS_BAN)
 	:SetDescription("Bans a player in a awesome way")
 	:AddParameter(uac.command.player)
-	:AddParameter(uac.command.number)
-	:AddParameter(uac.command.string)
+	:AddParameter(uac.command.number(0, math.huge, 5))
+	:AddParameter(uac.command.string("Banned from server"))
 
 function PLUGIN:TrainKick(ply, target, reason)
-	reason = reason or ""
 	reason = reason:gsub("[;,:.\\/]", "_")
 
 	target:SetMoveType(MOVETYPE_WALK)
@@ -96,7 +92,7 @@ PLUGIN:AddCommand("trainkick", PLUGIN.TrainKick)
 	:SetAccess(ACCESS_KICK)
 	:SetDescription("Kicks a player in a awesome way")
 	:AddParameter(uac.command.player)
-	:AddParameter(uac.command.string)
+	:AddParameter(uac.command.string("Kicked from server"))
 
 ------------------------------------------------------------
 
@@ -126,7 +122,7 @@ ENT.honk = Sound("Trainyard.train_horn_everywhere")
 ENT.shadowparams = {}
 
 function ENT:Initialize()
-	self:SetColor(Color(255, 255, 0, 255))
+	self:SetColor(uac.color.yellow)
 	self:SetModel("models/props_trainstation/train001.mdl")
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)

@@ -1,3 +1,5 @@
+-- this is really messy, clean this up
+
 local chat_prefixes = "-!"
 net.Receive("uac_chat_CPS", function(len)
 	chat_prefixes = net.ReadString()
@@ -14,8 +16,8 @@ net.Receive("uac_chat_Text", function(len)
 end)
 
 local boxcolor = Color(120, 120, 120, 120)
-local textcolor = Color(255, 255, 255, 255)
 local autocomplete
+local autocomplen = 0
 local function HUDPaint()
 	if autocomplete == nil then
 		return
@@ -26,8 +28,8 @@ local function HUDPaint()
 	draw.RoundedBox(8, chatx + autocomplete.box.x, chaty + autocomplete.box.y, autocomplete.box.w, autocomplete.box.h, boxcolor)
 
 	surface.SetFont("ChatFont")
-	surface.SetTextColor(textcolor)
-	for i = 1, #autocomplete do
+	surface.SetTextColor(uac.color.white)
+	for i = 1, autocomplen do
 		surface.SetTextPos(chatx + autocomplete[i].x, chaty + autocomplete[i].y)
 		surface.DrawText(autocomplete[i].text)
 	end
@@ -41,15 +43,15 @@ hook.Add("FinishChat", "uac.chat.FinishChat", function()
 	hook.Remove("HUDPaint", "uac.chat.HUDPaint")
 end)
 
-local previous_index
+local previous_index = 0
 local tabbed = false
 hook.Add("OnChatTab", "uac.chat.OnChatTab", function(str)
-	if chat_prefixes ~= nil and autocomplete ~= nil and #autocomplete > 0 and str:find(("^[%s]"):format(chat_prefixes)) then
-		previous_index = previous_index ~= nil and previous_index + 1 or 1
-		previous_index = previous_index > math.min(#autocomplete, 5) and 1 or previous_index
+	local autocompletelen = autocomplete ~= nil and #autocomplete or 0
+	if chat_prefixes ~= nil and autocomplete ~= nil and autocompletelen > 0 and string.find(str, string.format("^[%s]", chat_prefixes)) then
+		previous_index = previous_index + 1
+		previous_index = previous_index > autocompletelen and 1 or previous_index
 		tabbed = true
-		print(previous_index, autocomplete[previous_index].text)
-		return autocomplete[previous_index].text .. " "
+		return previous_index <= autocomplen and autocomplete[previous_index].text or autocomplete[previous_index]
 	end
 end)
 
@@ -59,36 +61,48 @@ hook.Add("ChatTextChanged", "uac.chat.ChatTextChanged", function(text)
 		return
 	end
 
-	previous_index = nil
+	previous_index = 0
 
 	if text == "" then
 		autocomplete = nil
 		return
 	end
 
-	local prefix = text:sub(1, 1)
-	if chat_prefixes ~= nil and chat_prefixes:find(prefix) then
+	local prefix = string.sub(text, 1, 1)
+	if chat_prefixes ~= nil and string.find(chat_prefixes, prefix) then
 		surface.SetFont("ChatFont")
 		local spacew = surface.GetTextSize(" ")
 
 		local maxw = 0
 		local maxh = 5 -- border size
-		local command, argstr = uac.command.Split(text:sub(2))
+
+		local command, argstr = uac.command.Split(string.sub(text, 2))
 		local autocompletes = uac.command.GetAutoComplete(prefix, command, argstr)
+
 		autocomplete = {}
-		for i = 1, math.min(#autocompletes, 5) do
-			local text = autocompletes[i]
-			local textw, texth = surface.GetTextSize(text)
-			maxh = maxh + texth
-			table.insert(autocomplete, {text = text, x = 5, y = -maxh - 5})
-			textw = textw + spacew
-			if textw > maxw then
-				maxw = textw
+		autocomplen = 0
+		for i = 1, #autocompletes do
+			if i <= 5 then
+				autocomplen = autocomplen + 1
+
+				local text = autocompletes[i]
+				local textw, texth = surface.GetTextSize(text)
+				maxh = maxh + texth
+
+				table.insert(autocomplete, {text = text, x = 5, y = -maxh - 5})
+
+				textw = textw + spacew
+				if textw > maxw then
+					maxw = textw
+				end
+
+				maxh = maxh + 3
+			else
+				table.insert(autocomplete, autocompletes[i])
 			end
-			maxh = maxh + 3
 		end
 
-		if #autocomplete == 0 then
+		if autocomplen == 0 then
 			autocomplete = nil
 			return
 		end

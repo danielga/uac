@@ -126,11 +126,11 @@ function uac.plugin.Include(name)
 		}, PLUGIN)
 		_G.PLUGIN = plugin
 
-		local folder = ("uac/plugins/%s"):format(name)
+		local folder = string.format("uac/plugins/%s", name)
 		if file.IsDir(folder, "LUA") then
-			local sv_file = ("%s/server.lua"):format(folder)
-			local sh_file = ("%s/shared.lua"):format(folder)
-			local cl_file = ("%s/client.lua"):format(folder)
+			local sv_file = string.format("%s/server.lua", folder)
+			local sh_file = string.format("%s/shared.lua", folder)
+			local cl_file = string.format("%s/client.lua", folder)
 
 			plugin.folder = folder
 
@@ -145,9 +145,9 @@ function uac.plugin.Include(name)
 				include(sh_file)
 			end
 		else
-			local sh_file = ("uac/plugins/sh_%s.lua"):format(name)
-			local sv_file = ("uac/plugins/sv_%s.lua"):format(name)
-			local cl_file = ("uac/plugins/cl_%s.lua"):format(name)
+			local sh_file = string.format("uac/plugins/sh_%s.lua", name)
+			local sv_file = string.format("uac/plugins/sv_%s.lua", name)
+			local cl_file = string.format("uac/plugins/cl_%s.lua", name)
 
 			plugin.folder = "uac/plugins"
 
@@ -180,6 +180,7 @@ function uac.plugin.Include(name)
 		_G.PLUGIN = nil
 
 		if loaded then
+			print("[UAC] Plugin: \"" .. name .. "\"")
 			plugin_list[name] = plugin
 			uac.plugin.Load(name)
 		end
@@ -188,7 +189,7 @@ function uac.plugin.Include(name)
 
 		local files, directories = file.Find("uac/plugins/*", "LUA")
 		for i = 1, #files do
-			local match = files[i]:match("^%a%a_(%w+)%.lua$")
+			local match = string.match(files[i], "^%a%a_(%w+)%.lua$")
 			if match ~= nil and not included_plugins[match] then
 				included_plugins[match] = true
 				uac.plugin.Include(match)
@@ -204,7 +205,7 @@ function uac.plugin.Include(name)
 		end
 	end
 end
-hook.Add("Initialize", "UAC plugins loader", uac.plugin.Include)
+hook.Add("Initialize", "uac.plugin.Include", uac.plugin.Include)
 
 function uac.plugin.Load(name, reloaded)
 	local plugin = plugin_list[name]

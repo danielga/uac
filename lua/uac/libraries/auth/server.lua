@@ -1,11 +1,12 @@
 AddCSLuaFile("shared.lua")
-include("shared.lua")
 
 uac.auth = uac.auth or {
 	users = {}
 }
 
 local users_list = uac.auth.users
+
+include("shared.lua")
 
 hook.Remove("PlayerInitialSpawn", "PlayerAuthSpawn") -- we don't want stuff to break right?
 
@@ -16,16 +17,9 @@ function uac.auth.UpdateUserFlags(steamid, flags)
 		users_list[steamid] = {usergroup = "", flags = flags}
 	end
 
-	local prefix = uac.sql.EscapeString(uac.config.GetValue("uac_prefix"))
-	steamid = uac.sql.EscapeString(steamid)
+	local prefix = uac.config.GetValue("uac_prefix")
 
-	uac.sql.Query("SELECT * FROM " .. prefix .. "_users WHERE steamid = '" .. steamid .. "'", function(succeeded, data)
-		if succeeded and #data > 0 then
-			uac.sql.Query("UPDATE " .. prefix .. "_users SET flags = '" .. uac.sql:EscapeString(flags) .. "' WHERE steamid = '" .. steamid .. "'")
-		else
-			uac.sql.Query("INSERT INTO " .. prefix .. "_users (steamid, flags) VALUES ('" .. steamid .. "', '" .. uac.sql:EscapeString(flags) .. "')")
-		end
-	end)
+	-- insert if not exists, update otherwise, upsert/merge?
 end
 
 function uac.auth.UpdateUserGroup(steamid, usergroup)
@@ -35,41 +29,16 @@ function uac.auth.UpdateUserGroup(steamid, usergroup)
 		users_list[steamid] = {usergroup = usergroup, flags = ""}
 	end
 
-	local prefix = uac.sql.EscapeString(uac.config.GetValue("uac_prefix"))
-	steamid = uac.sql.EscapeString(steamid)
+	local prefix = uac.config.GetValue("uac_prefix")
 
-	uac.sql.Query("SELECT * FROM " .. prefix .. "_users WHERE steamid = '" .. steamid .. "'", function(succeeded, data)
-		if succeeded and #data > 0 then
-			uac.sql.Query("UPDATE " .. prefix .. "_users SET usergroup = '" .. uac.sql:EscapeString(usergroup) .. "' WHERE steamid = '" .. steamid .. "'")
-		else
-			uac.sql.Query("INSERT INTO " .. prefix .. "_users (steamid, usergroup) VALUES ('" .. steamid .. "', '" .. uac.sql:EscapeString(usergroup) .. "')")
-		end
-	end)
+	-- insert if not exists, update otherwise, upsert/merge?
 end
 
 function uac.auth.LoadUsersList()
-	local prefix = uac.sql.EscapeString(uac.config.GetValue("uac_prefix"))
+	local prefix = uac.config.GetValue("uac_prefix")
 
-	uac.sql.Query("SELECT * FROM " .. prefix .. "_users", function(succeeded, data)
-		if succeeded and #data > 0 then
-			for i = 1, #data do
-				local plydata = data[i]
-				users_list[plydata.steamid] = {usergroup = plydata.usergroup or "users", flags = plydata.flags or ""}
-			end
-
-			local plys = player.GetAll()
-			for i = 1, #plys do
-				local player = plys[i]
-				local plydata = users_list[player:SteamID()]
-				if plydata then
-					player:SetUserGroup(plydata.usergroup)
-					player:SetUserFlags(plydata.flags)
-				end
-			end
-		else
-			uac.sql.Query("CREATE TABLE " .. prefix .. "_users (steamid CHAR(20), usergroup CHAR(50), flags CHAR(50))")
-		end
-	end)
+	-- try to create table at initialization
+	-- select all users on LoadUsersList
 end
 
 hook.Add("PlayerAuthed", "uac.auth.AuthPlayer", function(player)
@@ -112,12 +81,7 @@ function uac.auth.LoadUsersFile(filepath)
 end
 
 function uac.auth.SaveUsersFile(filepath)
-	local data = util.TableToKeyValues(users_list)
-	if data == nil then
-		return
-	end
-
-	data = data:gsub("[^\n]*", "\"Users\"")
+	local data = util.TableToKeyValues(users_list, "Users")
 	if data ~= nil then
 		file.Write(filepath, data)
 	end
@@ -157,7 +121,7 @@ if not file.Exists("uac/default_users.txt", "DATA") then
 	file.Write("uac/default_users.txt", default_users)
 end
 
-hook.Add("Initialize", "uac.Auth.LoadUsers", function()
+hook.Add("Initialize", "uac.auth.LoadUsers", function()
 	uac.auth.LoadUsersFile("uac/users.txt")
 	uac.auth.LoadUsersList()
 end)

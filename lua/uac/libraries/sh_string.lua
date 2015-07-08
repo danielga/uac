@@ -1,5 +1,17 @@
 uac.string = uac.string or {}
 
+local type = type
+local tonumber = tonumber
+local tostring = tostring
+local math_min = math.min
+local math_abs = math.abs
+local string_byte = string.byte
+local string_gmatch = string.gmatch
+local string_format = string.format
+local string_sub = string.sub
+local string_gsub = string.gsub
+local string_find = string.find
+
 function uac.string.Levenshtein(s, t)
 	local d, sn, tn = {}, #s, #t
 
@@ -12,9 +24,9 @@ function uac.string.Levenshtein(s, t)
 	end
 
 	for i = 1, sn do
-		local si = s:byte(i)
+		local si = string_byte(s, i)
 		for j = 1, tn do
-			d[i * tn + j] = math.min(d[(i - 1) * tn + j] + 1, d[i * tn + j - 1] + 1, d[(i - 1) * tn + j - 1] + (si == t:byte(j) and 0 or 1))
+			d[i * tn + j] = math_min(d[(i - 1) * tn + j] + 1, d[i * tn + j - 1] + 1, d[(i - 1) * tn + j - 1] + (si == string_byte(t, j) and 0 or 1))
 		end
 	end
 
@@ -23,16 +35,16 @@ end
 
 function uac.string.DamerauLevenshtein(s, t, lim)
 	local s_len, t_len = #s, #t
-	if lim and math.abs(s_len - t_len) >= lim then
+	if lim and math_abs(s_len - t_len) >= lim then
 		return lim
 	end
 	
 	if type(s) == "string" then
-		s = {s:byte(1, s_len)}
+		s = {string_byte(s, 1, s_len)}
 	end
 
 	if type(t) == "string" then
-		t = {t:byte(1, t_len)}
+		t = {string_byte(t, 1, t_len)}
 	end
 
 	local num_columns = t_len + 1
@@ -51,11 +63,11 @@ function uac.string.DamerauLevenshtein(s, t, lim)
 		local best = lim
 		for j = 1, t_len do
 			local add_cost = (s[i] ~= t[j] and 1 or 0)
-			local val = math.min(d[i_pos - num_columns + j] + 1, d[i_pos + j - 1] + 1, d[i_pos - num_columns + j - 1] + add_cost)
+			local val = math_min(d[i_pos - num_columns + j] + 1, d[i_pos + j - 1] + 1, d[i_pos - num_columns + j - 1] + add_cost)
 			d[i_pos + j] = val
 
 			if i > 1 and j > 1 and s[i] == t[j - 1] and s[i - 1] == t[j] then
-				d[i_pos + j] = math.min(val, d[i_pos - num_columns - num_columns + j - 2] + add_cost)
+				d[i_pos + j] = math_min(val, d[i_pos - num_columns - num_columns + j - 2] + add_cost)
 			end
 
 			if lim and val < best then
@@ -77,15 +89,15 @@ function uac.string.Format(text, ...)
 	local matched = {}
 	local substitutes = {...}
 
-	for match in text:gmatch(formatex_pattern) do
-		local match_number = tonumber(match:sub(2, -2))
+	for match in string_gmatch(text, formatex_pattern) do
+		local match_number = tonumber(string_sub(match, 2, -2))
 		if match_number ~= nil and matched[match_number] == nil then
 			if substitutes[match_number] == nil then
-				error(no_substitute_error:format(match_number))
+				error(string_format(no_substitute_error, match_number))
 			end
 
 			matched[match_number] = true
-			text = text:gsub(match, tostring(substitutes[match_number]))
+			text = string_gsub(text, match, tostring(substitutes[match_number]))
 		end
 	end
 
@@ -93,13 +105,13 @@ function uac.string.Format(text, ...)
 end
 
 function uac.string.IsSteamIDValid(steamid)
-	return type(steamid) == "string" and steamid:find("^STEAM_%d:%d:%d+$") ~= nil
+	return type(steamid) == "string" and string_find(steamid, "^STEAM_%d:%d:%d+$") ~= nil
 end
 
 function uac.string.IsSteamID64Valid(steamid64)
-	return type(steamid64) == "string" and steamid64:find("^%d+$") ~= nil
+	return type(steamid64) == "string" and string_find(steamid64, "^%d+$") ~= nil
 end
 
 function uac.string.IsIPValid(ip)
-	return type(steamid64) == "ip" and ip:find("^%d+.%d+.%d+.%d+$") ~= nil
+	return type(ip) == "string" and string_find(ip, "^%d+.%d+.%d+.%d+$") ~= nil
 end

@@ -6,11 +6,11 @@ util.AddNetworkString("uac_chat_CPS")
 local PLAYER = FindMetaTable("Player")
 
 function PLAYER:Mute(boolean)
-	self:GetUACTable().muted = boolean
+	self:UACGetTable().muted = boolean
 end
 
 function PLAYER:Gag(boolean)
-	self:GetUACTable().gagged = boolean
+	self:UACGetTable().gagged = boolean
 end
 
 function PLAYER:ChatText(...)
@@ -39,12 +39,12 @@ function PLAYER:ChatText(...)
 end
 
 hook.Add("PlayerSay", "uac.chat.PlayerSay", function(ply, text, global)
-	if ply:GetUACTable().gagged then
+	if ply:UACGetTable().gagged then
 		return ""
 	end
 
-	if uac.config.GetValue("uac_chat_prefixes"):find(text:sub(1, 1)) then
-		local command, argstr = uac.command.Split(text:sub(2))
+	if string.find(uac.config.GetValue("uac_chat_prefixes"), string.sub(text, 1, 1)) then
+		local command, argstr = uac.command.Split(string.sub(text, 2))
 		if uac.command.Run(ply, command, argstr) then
 			return ""
 		end
@@ -52,7 +52,7 @@ hook.Add("PlayerSay", "uac.chat.PlayerSay", function(ply, text, global)
 end)
 
 hook.Add("PlayerCanHearPlayersVoice", "uac.chat.MuteVoice", function(listener, talker)
-	if talker:GetUACTable().muted then
+	if talker:UACGetTable().muted then
 		return false, false
 	end
 end)
