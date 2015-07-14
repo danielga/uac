@@ -1,10 +1,5 @@
--- value that is different to everything but itself
 uac.command.optional = {}
 
--- make Process return a value on success
--- nil and an error string on failure à la Lua
--- soft errors means nothing failed but we didn't get targets for example
--- probably doesn't matter and they'll be errors all the same
 local BOOLEAN = {}
 BOOLEAN.__index = BOOLEAN
 

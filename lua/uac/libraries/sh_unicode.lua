@@ -160,6 +160,7 @@ function uac.unicode.Iterator(str, offset, noseq)
 end
 
 local Iterator = uac.unicode.Iterator
+local DecomposeSequence
 function uac.unicode.DecomposeSequence(str, offset)
 	local seq = Sequence(str, offset)
 	local decomposed = decomposition[seq]
@@ -169,13 +170,13 @@ function uac.unicode.DecomposeSequence(str, offset)
 	
 	local decomp = ""
 	for seq in Iterator(decomposed) do
-		decomp = decomp .. uac.unicode.DecomposeSequence(seq)
+		decomp = decomp .. DecomposeSequence(seq)
 	end
 
 	return decomp
 end
 
-local DecomposeSequence = uac.unicode.DecomposeSequence
+DecomposeSequence = uac.unicode.DecomposeSequence
 function uac.unicode.Decompose(str)
 	local map = {}
 	local invmap = {}
