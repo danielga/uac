@@ -1,4 +1,6 @@
-UAC - Unified Administration Center
-===================================
+# UAC - Unified Administration Center
 
 A Garry's Mod administration addon.
+
+## Info
+
