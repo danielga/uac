@@ -25,7 +25,6 @@ function KEY:Add(data, index)
 		return false
 	end
 
-	self.last = unique
 	self.lookup[index] = unique
 	self.lookup[unique] = index
 	self.lookupcount = self.lookupcount + 1
@@ -45,18 +44,10 @@ function KEY:Remove(index)
 		index = self.lookup[unique]
 	end
 
-	if self.last == unique then
-		self.last = nil
-	end
-
 	self.lookup[index] = nil
 	self.lookup[unique] = nil
 	self.lookupcount = self.lookupcount - 1
 	return true
-end
-
-function KEY:Revert()
-	return self.last ~= nil and self:Remove(self.last)
 end
 
 function KEY:Find(data)
@@ -138,7 +129,7 @@ function TABLE:AddRow(data)
 	for i = 1, self.keyscount do
 		if not self.keys[i]:Add(data, index) then
 			for k = i - 1, 1, -1 do
-				self.keys[k]:Revert()
+				self.keys[k]:Remove(index)
 			end
 
 			return self
@@ -154,7 +145,7 @@ function TABLE:AddRow(data)
 			end
 
 			for k = 1, self.keyscount do
-				self.keys[k]:Revert()
+				self.keys[k]:Remove(index)
 			end
 
 			return self

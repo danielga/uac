@@ -11,9 +11,8 @@ local function SetupParameter(parameter, type, types, ...)
 	local argcount = select("#", ...)
 	for i = 1, argcount do
 		local arg = select(i, ...)
-		local sqltype = types[arg]
-		if sqltype ~= nil then
-			parameter.type = sqltype
+		if types ~= nil and types[arg] ~= nil then
+			parameter.type = types[arg]
 		elseif isint and arg == uac.data.unsigned then
 			parameter.unsigned = true
 		elseif parameter:Check(arg) then
@@ -82,18 +81,13 @@ function BOOLEAN:Translate(row)
 	return self:Get(row) and "TRUE" or "FALSE"
 end
 
-function uac.data.boolean(name, extra)
+function uac.data.boolean(name, ...)
 	local parameter = setmetatable({
 		name = name,
 		rows = {}
 	}, BOOLEAN)
 
-	if extra ~= nil then
-		assert(parameter:Check(extra), "bad type for default boolean value")
-		parameter.default = extra
-	end
-
-	return parameter
+	return SetupParameter(parameter, "boolean", nil, ...)
 end
 
 local NUMBER = {}

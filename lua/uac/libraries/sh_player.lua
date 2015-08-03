@@ -1,9 +1,9 @@
 uac.player = uac.player or {}
 
 if SERVER then
-	util.AddNetworkString("uac_player_Notify")
+	util.AddNetworkString("uac_player_notify")
 else
-	net.Receive("uac_player_Notify", function(len)
+	net.Receive("uac_player_notify", function(len)
 		-- Maximum number of seconds for notifications with this is 65535 which seems reasonable
 		notification.AddLegacy(net.ReadString(), net.ReadUInt(8), net.ReadUInt(16))
 	end)
@@ -29,7 +29,7 @@ end
 
 if SERVER then
 	function PLAYER:Notify(message, type, length)
-		net.Start("uac_player_Notify")
+		net.Start("uac_player_notify")
 			net.WriteString(message)
 			net.WriteUInt(type, 8)
 			net.WriteUInt(length, 16)

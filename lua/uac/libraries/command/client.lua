@@ -28,7 +28,7 @@ concommand.Add("uac", function(ply, command, args, argstr)
 
 	command, argstr = uac.command.Split(argstr)
 
-	net.Start("uac_command_EXE")
+	net.Start("uac_command_execute")
 	net.WriteString(command)
 
 	local hasargs = argstr ~= nil

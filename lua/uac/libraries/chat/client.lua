@@ -1,11 +1,11 @@
 -- this is really messy, clean this up
 
 local chat_prefixes = "-!"
-net.Receive("uac_chat_CPS", function(len)
+net.Receive("uac_chat_prefixes", function(len)
 	chat_prefixes = net.ReadString()
 end)
 
-net.Receive("uac_chat_Text", function(len)
+net.Receive("uac_chat_text", function(len)
 	local num = net.ReadUInt(8)
 	local data = {}
 	for i = 1, num do

@@ -1,7 +1,7 @@
 AddCSLuaFile("client.lua")
 
-util.AddNetworkString("uac_chat_Text")
-util.AddNetworkString("uac_chat_CPS")
+util.AddNetworkString("uac_chat_text")
+util.AddNetworkString("uac_chat_prefixes")
 
 local PLAYER = FindMetaTable("Player")
 
@@ -17,7 +17,7 @@ function PLAYER:ChatText(...)
 	local tbl = {...}
 	local size = #tbl
 
-	net.Start("uac_chat_Text")
+	net.Start("uac_chat_text")
 
 	net.WriteUInt(size, 8)
 	for i = 1, size do
@@ -63,7 +63,7 @@ hook.Add("PlayerInitialSpawn", "uac.chat.ChatPrefixesSync", function(ply)
 		return
 	end
 
-	net.Start("uac_chat_CPS")
+	net.Start("uac_chat_prefixes")
 	net.WriteString(chat_prefixes)
 	net.Send(ply)
 end)
