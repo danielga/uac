@@ -45,21 +45,21 @@ function uac.unicode.CodePoint(seq, offset)
 		return -1
 	elseif codepoint < 224 then
 		if offset + 1 > len then
-			return -1
+			return -1, 2
 		end
 
 		local b1 = string_byte(seq, offset + 1)
 		return (codepoint % 32) * 64 + b1 % 64, 2
 	elseif codepoint < 240 then
 		if offset + 2 > len then
-			return -1
+			return -1, 3
 		end
 
 		local b1, b2 = string_byte(seq, offset + 1, offset + 2)
 		return (codepoint % 16) * 4096 + (b1 % 64) * 64 + (b2 % 64), 3
 	elseif codepoint < 248 then
 		if offset + 3 > len then
-			return -1
+			return -1, 4
 		end
 
 		local b1, b2, b3 = string_byte(seq, offset + 1, offset + 3)
