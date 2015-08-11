@@ -31,65 +31,61 @@ local table_concat = table.concat
 local file_Read = file.Read
 
 function uac.unicode.CodePoint(seq, offset)
-	if #seq == 0 then
+	offset = offset or 1
+
+	local len = #seq
+	if len == 0 or offset > len then
 		return -1
 	end
 
-	offset = offset or 1
-
 	local codepoint = string_byte(seq, offset)
-	local length = 1
 	if codepoint < 128 then
-		return codepoint, length
+		return codepoint, 1
 	elseif codepoint < 192 then
-		codepoint = -1
+		return -1
 	elseif codepoint < 224 then
-		length = 2
-		if #seq < offset + 1 then
-			return -1, length
+		if offset + 1 > len then
+			return -1
 		end
 
-		codepoint = (codepoint % 32) * 64 + (string_byte(seq, offset + 1) % 64)
+		local b1 = string_byte(seq, offset + 1)
+		return (codepoint % 32) * 64 + b1 % 64, 2
 	elseif codepoint < 240 then
-		length = 3
-		if #seq < offset + 2 then
-			return -1, length
+		if offset + 2 > len then
+			return -1
 		end
 
 		local b1, b2 = string_byte(seq, offset + 1, offset + 2)
-		codepoint = (codepoint % 16) * 4096 + (b1 % 64) * 64 + (b2 % 64)
+		return (codepoint % 16) * 4096 + (b1 % 64) * 64 + (b2 % 64), 3
 	elseif codepoint < 248 then
-		length = 4
-		if #seq < offset + 3 then
-			return -1, length
+		if offset + 3 > len then
+			return -1
 		end
 
 		local b1, b2, b3 = string_byte(seq, offset + 1, offset + 3)
-		codepoint = (codepoint % 8) * 262144 + (b1 % 64) * 4096 + (b2 % 64) * 64 + (b3 % 64)
-	else
-		codepoint = -1
+		return (codepoint % 8) * 262144 + (b1 % 64) * 4096 + (b2 % 64) * 64 + b3 % 64, 4
 	end
 
-	return codepoint, length
+	return -1
 end
 
 function uac.unicode.Character(codepoint)
 	if codepoint < 0 then
 		return ""
-	elseif codepoint < 2 ^ 7 then
+	elseif codepoint < 128 then
 		return string_char(codepoint)
-	elseif codepoint < 2 ^ 11 then
+	elseif codepoint < 2048 then
 		return string_char(
 			192 + math_floor(codepoint / 64),
 			128 + (codepoint % 64)
 		)
-	elseif codepoint < 2 ^ 16 then
+	elseif codepoint < 65536 then
 		return string_char(
 			224 + math_floor(codepoint / 4096),
 			128 + (math_floor(codepoint / 64) % 64),
 			128 + (codepoint % 64)
 		)
-	elseif codepoint < 2 ^ 21 then
+	elseif codepoint < 2097152 then
 		return string_char(
 			240 + math_floor(codepoint / 262144),
 			128 + (math_floor(codepoint / 4096) % 64),
