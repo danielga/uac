@@ -11,14 +11,6 @@ end
 
 local PLAYER = FindMetaTable("Player")
 
-function PLAYER:UACGetTable()
-	if not self.__uac then
-		self.__uac = {}
-	end
-
-	return self.__uac
-end
-
 function PLAYER:IsImmune(ply)
 	if not IsValid(ply) or self == ply then
 		return false

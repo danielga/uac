@@ -206,4 +206,4 @@ end
 
 end
 
-scripted_ents.Register(ENT, "uac_train") 
+scripted_ents.Register(ENT, "uac_train")
