@@ -1,14 +1,10 @@
--- Synchronize unicode data through data library
--- Either add a new library for file sending and use a table named files
--- or add a table for unicode with the same name as itself
+uac.unicode = uac.unicode or {}
 
-uac.unicode = uac.unicode or {
-	uppercase = {},
-	lowercase = {},
-	titlecase = {},
-	decomposition = {},
-	similar = {}
-}
+uac.unicode.uppercase = {}
+uac.unicode.lowercase = {}
+uac.unicode.titlecase = {}
+uac.unicode.decomposition = {}
+uac.unicode.similar = {}
 
 local uppercase = uac.unicode.uppercase
 local lowercase = uac.unicode.lowercase
@@ -135,7 +131,7 @@ function uac.unicode.Iterator(str, offset, noseq)
 			if offset > #str then
 				return nil, #str + 1
 			end
-			
+
 			local len = SequenceLength(str, offset)
 			local lastOffset = offset
 			offset = offset + len
@@ -147,7 +143,7 @@ function uac.unicode.Iterator(str, offset, noseq)
 		if offset > #str then
 			return nil, #str + 1
 		end
-		
+
 		local char, pos = Sequence(str, offset)
 		local lastOffset = offset
 		offset = pos
@@ -163,10 +159,10 @@ function uac.unicode.DecomposeSequence(str, offset)
 	if decomposed == nil then
 		return seq
 	end
-	
+
 	local decomp = ""
-	for seq in Iterator(decomposed) do
-		decomp = decomp .. DecomposeSequence(seq)
+	for dseq in Iterator(decomposed) do
+		decomp = decomp .. DecomposeSequence(dseq)
 	end
 
 	return decomp
@@ -177,15 +173,15 @@ function uac.unicode.Decompose(str)
 	local map = {}
 	local invmap = {}
 	local t = {}
-	
+
 	local outoffset = 1
 	for seq, offset in Iterator(str) do
-		local decomposition = DecomposeSequence(seq)
-		t[#t + 1] = decomposition
+		local decomp = DecomposeSequence(seq)
+		t[#t + 1] = decomp
 
 		map[offset] = outoffset
 		invmap[outoffset] = offset
-		outoffset = outoffset + #decomposition
+		outoffset = outoffset + #decomp
 	end
 
 	map[#str + 1] = outoffset
@@ -204,9 +200,8 @@ local function Compare(left, right)
 	if similars ~= nil then
 		for i = 1, #similars do
 			local s = similars[i]
-			local l = lowercase[s] ~= nil and lowercase[s] or s
-			local r = lowercase[right] ~= nil and lowercase[right] or right
-			if l == r then
+			local ls = lowercase[s] ~= nil and lowercase[s] or s
+			if ls == r then
 				return true
 			end
 		end
@@ -265,10 +260,10 @@ function uac.unicode.ParseUnicodeData()
 		if columns[6] ~= nil and #columns[6] ~= 0 then
 			local decomps = string_Split(columns[6], " ")
 			local decomp = ""
-			for i = 1, #decomps do
-				local codepoint = tonumber("0x" .. decomps[i])
-				if codepoint ~= nil then
-					decomp = decomp .. Character(codepoint)
+			for k = 1, #decomps do
+				local cpdecomp = tonumber("0x" .. decomps[k])
+				if cpdecomp ~= nil then
+					decomp = decomp .. Character(cpdecomp)
 				end
 			end
 
@@ -315,8 +310,8 @@ function uac.unicode.ParseSimilarData()
 			local similars = {}
 
 			local codepoints = string_Split(columns[2], " ")
-			for i = 1, #codepoints do
-				similars[i] = Character(tonumber("0x" .. codepoints[i]))
+			for k = 1, #codepoints do
+				similars[k] = Character(tonumber("0x" .. codepoints[k]))
 			end
 
 			if #similars ~= 0 then
