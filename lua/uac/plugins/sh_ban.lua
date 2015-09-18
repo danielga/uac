@@ -4,7 +4,7 @@ PLUGIN.Author = "MetaMan"
 
 function PLUGIN:Ban(ply, target, time, reason)
 	reason = reason:gsub("[;,:.\\/]", "_")
-	
+
 	target:Ban(time, reason)
 	target:Kick(reason)
 end

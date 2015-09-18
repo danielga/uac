@@ -85,11 +85,11 @@ hook.Add("ChatTextChanged", "uac.chat.ChatTextChanged", function(text)
 			if i <= 5 then
 				autocomplen = autocomplen + 1
 
-				local text = autocompletes[i]
-				local textw, texth = surface.GetTextSize(text)
+				local ac = autocompletes[i]
+				local textw, texth = surface.GetTextSize(ac)
 				maxh = maxh + texth
 
-				table.insert(autocomplete, {text = text, x = 5, y = -maxh - 5})
+				table.insert(autocomplete, {text = ac, x = 5, y = -maxh - 5})
 
 				textw = textw + spacew
 				if textw > maxw then

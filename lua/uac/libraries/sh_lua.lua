@@ -20,7 +20,7 @@ if SERVER then
 		if IsValid(by) then
 			identifier = string.format("%s (%s)", by:Name(), by:SteamID())
 		end
-		
+
 		net.Start("uac_lua")
 			net.WriteString(src)
 			net.WriteString(identifier)

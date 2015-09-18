@@ -142,11 +142,11 @@ if META then
 			uactable.lastbanupdate = curtime
 			uac.ban.IsBanned(self, UpdateStatus, self)
 		end
-		
+
 		return uactable.banned or false -- returns cached value or false but tries to update it when this function is called
 	end
 end
 
 hook.Add("PlayerAuthed", "uac.bans.CheckPlayerStatus", function(ply, steamid, uniqueid)
-	uac.ban.IsBanned(self, CheckJoiningPlayerStatus, {player = ply, steamid = steamid, ip = ply:IPAddress()})
+	uac.ban.IsBanned(ply, CheckJoiningPlayerStatus, {player = ply, steamid = steamid, ip = ply:IPAddress()})
 end)

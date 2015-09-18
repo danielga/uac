@@ -7,7 +7,7 @@ function PLUGIN:EnterVehicle(ply, target)
 	if not IsValid(vehicle) then
 		return
 	end
-	
+
 	if target:Alive() then
 		if IsValid(vehicle) and vehicle:IsVehicle() then
 			if IsValid(vehicle:GetDriver()) then vehicle:GetDriver():ExitVehicle() end

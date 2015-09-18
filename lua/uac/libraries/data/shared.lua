@@ -200,8 +200,8 @@ function TABLE:AddKey(name, columns)
 	assert(#columns ~= 0, "key column list can't be empty")
 
 	for i = 1, #columns do
-		local name = columns[i]
-		local column = self:GetColumn(name)
+		local colname = columns[i]
+		local column = self:GetColumn(colname)
 		if column == nil then
 			error("key has an inexistent column")
 		elseif not column:CanIndex() then
@@ -209,7 +209,7 @@ function TABLE:AddKey(name, columns)
 		end
 
 		columns[i] = column
-		columns[name] = column
+		columns[colname] = column
 	end
 
 	self.keyscount = self.keyscount + 1
@@ -258,7 +258,7 @@ function TABLE:SetSavable(save)
 end
 
 function uac.data.AddTable(name)
-	local table = setmetatable({
+	local tab = setmetatable({
 		name = name,
 		columns = {},
 		columnscount = 0,
@@ -268,8 +268,8 @@ function uac.data.AddTable(name)
 		keys = {},
 		keyscount = 0
 	}, TABLE)
-	data_list[name] = table
-	return table
+	data_list[name] = tab
+	return tab
 end
 
 function uac.data.GetTable(name)

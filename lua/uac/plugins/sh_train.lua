@@ -4,26 +4,26 @@ PLUGIN.Author = "MetaMan"
 
 function PLUGIN:TrainFuck(ply, targets)
 	for i = 1, #targets do
-		local ply = targets[i]
-		ply:SetMoveType(MOVETYPE_WALK)
+		local target = targets[i]
+		target:SetMoveType(MOVETYPE_WALK)
 		local train = ents.Create("uac_train")
-		train:SetPos(ply:GetPos() + Vector(0, 0, 100) + ply:GetForward() * 1000)
-		local vec = ply:GetPos() + Vector(0, 0, 100) - train:GetPos()
+		train:SetPos(target:GetPos() + Vector(0, 0, 100) + target:GetForward() * 1000)
+		local vec = target:GetPos() + Vector(0, 0, 100) - train:GetPos()
 		vec:Normalize()
 		train:SetAngles(vec:Angle() - Angle(0, 90, 0))
-		train:SetOwner(ply)
+		train:SetOwner(target)
 		train:Spawn()
 		train:Activate()
 
-		train:SetHitCallback(function(train, ply)
-			if not IsValid(ply) then
+		train:SetHitCallback(function(self, targ)
+			if not IsValid(targ) then
 				return
 			end
 
-			local vec = ply:GetPos() - train:GetPos() + Vector(0, 0, 400)
-			vec:Normalize()
-			ply:SetLocalVelocity(vec * 2000)
-			ply:Kill()
+			local vel = targ:GetPos() - self:GetPos() + Vector(0, 0, 400)
+			vel:Normalize()
+			targ:SetLocalVelocity(vel * 2000)
+			targ:Kill()
 		end)
 	end
 end
@@ -34,7 +34,7 @@ PLUGIN:AddCommand("trainfuck", PLUGIN.TrainFuck)
 
 function PLUGIN:TrainBan(ply, target, time, reason)
 	reason = reason:gsub("[;,:.\\/]", "_")
-	
+
 	target:SetMoveType(MOVETYPE_WALK)
 	local train = ents.Create("uac_train")
 	train:SetPos(target:GetPos() + Vector(0, 0, 100) + target:GetForward() * 1000)
@@ -45,16 +45,16 @@ function PLUGIN:TrainBan(ply, target, time, reason)
 	train:Spawn()
 	train:Activate()
 
-	train:SetHitCallback(function(train, target)
-		if IsValid(target) then
-			target:Ban(time, reason)
-			target:Kick(reason)
+	train:SetHitCallback(function(self, targ)
+		if IsValid(targ) then
+			targ:Ban(time, reason)
+			targ:Kick(reason)
 		end
 	end)
 
 	local name = target:Nick()
 	local steamid = target:SteamID()
-	train:SetEndCallback(function(train, target, success)
+	train:SetEndCallback(function(self, targ, success)
 		if success then
 			return
 		end
@@ -82,9 +82,9 @@ function PLUGIN:TrainKick(ply, target, reason)
 	train:Spawn()
 	train:Activate()
 
-	train:SetHitCallback(function(train, target)
-		if IsValid(target) then
-			target:Kick(reason)
+	train:SetHitCallback(function(self, targ)
+		if IsValid(targ) then
+			targ:Kick(reason)
 		end
 	end)
 end

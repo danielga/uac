@@ -31,7 +31,7 @@ function uac.sql.Initialize()
 	local success, err = current_system.Initialize()
 	if not success then
 		-- print an error about being unable to initialize database connection
-		
+
 	end
 
 	return success

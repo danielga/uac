@@ -14,7 +14,7 @@ PLUGIN:AddCommand("changemap", PLUGIN.ChangeMap)
 	:AddParameter(uac.command.number(0, math.huge, 0))
 
 function PLUGIN:CancelChangeMap(ply, command, args)
-	timer.Destroy("uac_changemap")
+	timer.Remove("uac_changemap")
 end
 PLUGIN:AddCommand("cancelchangemap", PLUGIN.CancelChangeMap)
 	:SetAccess(ACCESS_MAP)
@@ -31,7 +31,7 @@ PLUGIN:AddCommand("restart", PLUGIN.RestartMap)
 	:AddParameter(uac.command.number(0, math.huge, 0))
 
 function PLUGIN:CancelRestartMap(ply, command, args)
-	timer.Destroy("uac_restartmap")
+	timer.Remove("uac_restartmap")
 end
 PLUGIN:AddCommand("cancelrestart", PLUGIN.CancelRestartMap)
 	:SetAccess(ACCESS_MAP)

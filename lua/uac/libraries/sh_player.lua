@@ -11,6 +11,39 @@ end
 
 local PLAYER = FindMetaTable("Player")
 
+function PLAYER:FindFreeSpace(behind)
+	local plypos = self:GetPos()
+	local plyang = self:EyeAngles()
+	local yaw =  math.floor(plyang.y / 45 + 0.5) * 45 --snap to 45 degree.
+
+	local size = Vector(32, 32, 72)
+	local StartPos = plypos + Vector(0, 0, size.z / 2) --start in the middle of the player
+
+	--now find free space behind or infront of player.
+	d = {0, 45, -45}
+	for i = 1, 3 do --try 0, then 45, then -45
+		local Pos
+		if not behind then
+			Pos = StartPos - Vector(math.cos(yaw - d[i]), math.sin(yaw - d[i])) * size * 1.5
+		else
+			Pos = StartPos + Vector(math.cos(yaw - d[i]), math.sin(yaw - d[i])) * size * 1.5
+		end
+
+		local tr = {}
+		tr.start = Pos
+		tr.endpos = Pos
+		tr.mins = size / 2 * -1
+		tr.maxs = size / 2
+
+		local trace = util.TraceHull(tr)
+		if not trace.Hit then
+			return Pos - Vector(0, 0, size.z / 2)
+		end
+	end
+
+	return nil
+end
+
 function PLAYER:IsImmune(ply)
 	if not IsValid(ply) or self == ply then
 		return false
@@ -32,9 +65,9 @@ end
 function uac.player.GetPlayerFromSteamID(steamid)
 	local plys = player.GetHumans()
 	for i = 1, #plys do
-		local player = plys[i]
-		if player:SteamID() == steamid then
-			return player
+		local ply = plys[i]
+		if ply:SteamID() == steamid then
+			return ply
 		end
 	end
 
@@ -100,7 +133,7 @@ function uac.player.GetTargets(ply, target, ignore_immunity)
 				local good, distance = CompareStrings(target, lowteam)
 				if good then
 					v:UACGetTable().__string_distance = distance
-					table.insert(found, v)					
+					table.insert(found, v)
 				end
 			end
 		end
@@ -156,7 +189,7 @@ function uac.player.GetTargets(ply, target, ignore_immunity)
 				local good, distance = CompareStrings(target, lownick)
 				if good then
 					v:UACGetTable().__string_distance = distance
-					table.insert(found, v)					
+					table.insert(found, v)
 				end
 			end
 		end

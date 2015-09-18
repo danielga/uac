@@ -110,8 +110,8 @@ local function AutoCompleteBranch(tab, branches)
 
 	local autocomplete = {}
 	for i = 1, #tab do
-		for i = 1, #branches do
-			table.insert(autocomplete, string.format("%s,%s", tab[i], branches[i]))
+		for k = 1, #branches do
+			table.insert(autocomplete, string.format("%s,%s", tab[i], branches[k]))
 		end
 	end
 

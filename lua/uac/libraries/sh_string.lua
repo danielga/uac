@@ -38,7 +38,7 @@ function uac.string.DamerauLevenshtein(s, t, lim)
 	if lim and math_abs(s_len - t_len) >= lim then
 		return lim
 	end
-	
+
 	if type(s) == "string" then
 		s = {string_byte(s, 1, s_len)}
 	end
