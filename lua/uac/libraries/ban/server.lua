@@ -58,15 +58,18 @@ function uac.ban.GetActiveList(callback, userdata)
 end
 
 function uac.ban.IsBanned(ident, callback, userdata)
-	local userdata = {callback = callback, userdata = userdata}
-	local query
+	userdata = {callback = callback, userdata = userdata}
+	local query, prefix
 	if IsValid(ident) then
 		userdata.Player = ident
-		query = uac.string.Format(GetQuery("Check player is banned"), ident:SteamID(), ident:IPAddress())
+		query, prefix = GetQuery("Check player is banned")
+		query = uac.string.Format(query, prefix, ident:SteamID(), ident:IPAddress())
 	elseif uac.string.IsSteamIDValid(ident) then
-		query = uac.string.Format(GetQuery("Check player is banned by SteamID"), ident)
+		query, prefix = GetQuery("Check player is banned by SteamID")
+		query = uac.string.Format(query, prefix, ident)
 	elseif uac.string.IsIPValid(ident) then
-		query = uac.string.Format(GetQuery("Check player is banned by IP"), ident)
+		query, prefix = GetQuery("Check player is banned by IP")
+		query = uac.string.Format(query, prefix, ident)
 	else
 		return false
 	end
