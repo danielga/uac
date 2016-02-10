@@ -46,11 +46,16 @@ hook.Add("PlayerAuthed", "uac.auth.AuthPlayer", function(player)
 		player:SetUserGroup("superadmin")
 		return
 	end
+end)
 
-	local data = users_list[player:SteamID()]
+hook.Add("NetworkIDValidated", "uac.auth.NetworkIDValidated", function(name, steamid)
+	local data = users_list[steamid]
 	if data ~= nil then
-		player:SetUserGroup(data.usergroup)
-		player:SetUserFlags(data.flags)
+		local player = uac.player.GetPlayerFromSteamID(steamid)
+		if IsValid(player) then
+			player:SetUserGroup(data.usergroup)
+			player:SetUserFlags(data.flags)
+		end
 	end
 end)
 
@@ -70,7 +75,7 @@ function uac.auth.LoadUsersFile(filepath)
 		users_list[steamid] = {usergroup = tbl.usergroup or "users", flags = tbl.flags or ""}
 
 		local player = uac.player.GetPlayerFromSteamID(steamid)
-		if IsValid(player) and player:IsPlayer() then
+		if IsValid(player) and player:IsFullyAuthenticated() then
 			player:SetUserGroup(data.usergroup)
 			player:SetUserFlags(data.flags)
 		else
