@@ -44,7 +44,6 @@ end
 hook.Add("PlayerAuthed", "uac.auth.AuthPlayer", function(player)
 	if game.SinglePlayer() or player:IsListenServerHost() then
 		player:SetUserGroup("superadmin")
-		return
 	end
 end)
 

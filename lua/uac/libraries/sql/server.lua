@@ -36,7 +36,9 @@ function uac.sql.Initialize()
 
 	return success
 end
-hook.Add("Initialize", "uac.sql.Initialize", uac.sql.Initialize)
+hook.Add("Initialize", "uac.sql.Initialize", function()
+	uac.sql.Initialize()
+end)
 
 function uac.sql.Query(query, callback, errorcallback, userdata)
 	if current_system == nil and not uac.sql.Initialize() then
