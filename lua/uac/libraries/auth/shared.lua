@@ -3,11 +3,11 @@ local PLAYER = FindMetaTable("Player")
 local SpecialPlayer
 
 if SERVER then
-	local function SpecialPlayer(ply)
+	SpecialPlayer = function(ply)
 		return game.SinglePlayer() or ply:IsListenServerHost()
 	end
 else
-	local function SpecialPlayer()
+	SpecialPlayer = function()
 		return game.SinglePlayer()
 	end
 end
