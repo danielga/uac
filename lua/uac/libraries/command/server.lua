@@ -1,5 +1,6 @@
 AddCSLuaFile("client.lua")
 AddCSLuaFile("shared.lua")
+AddCSLuaFile("types.lua")
 include("shared.lua")
 
 util.AddNetworkString("uac_command_execute")
