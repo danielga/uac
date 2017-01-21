@@ -10,6 +10,6 @@ function PLUGIN:TeleTo(ply, target)
 	end
 end
 PLUGIN:AddCommand({"tp", "goto"}, PLUGIN.TeleTo)
-	:SetAccess(ACCESS_SLAY)
+	:SetAccess(uac.auth.access.slay)
 	:SetDescription("Teleports yourself to the specified user")
 	:AddParameter(uac.command.player)

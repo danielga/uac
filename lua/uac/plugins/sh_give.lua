@@ -8,7 +8,7 @@ function PLUGIN:Give(ply, target, item)
 	end
 end
 PLUGIN:AddCommand("give", PLUGIN.Give)
-	:SetAccess(ACCESS_SLAY)
+	:SetAccess(uac.auth.access.slay)
 	:SetDescription("Gives the specified item to a user")
 	:AddParameter(uac.command.player)
 	:AddParameter(uac.command.string)

@@ -8,7 +8,7 @@ function PLUGIN:ChangeMap(ply, map, time)
 	end)
 end
 PLUGIN:AddCommand("changemap", PLUGIN.ChangeMap)
-	:SetAccess(ACCESS_MAP)
+	:SetAccess(uac.auth.access.map)
 	:SetDescription("Changes the map")
 	:AddParameter(uac.command.string)
 	:AddParameter(uac.command.number(0, math.huge, 0))
@@ -17,7 +17,7 @@ function PLUGIN:CancelChangeMap(ply, command, args)
 	timer.Remove("uac_changemap")
 end
 PLUGIN:AddCommand("cancelchangemap", PLUGIN.CancelChangeMap)
-	:SetAccess(ACCESS_MAP)
+	:SetAccess(uac.auth.access.map)
 	:SetDescription("Cancels changemap")
 
 function PLUGIN:RestartMap(ply, time)
@@ -26,7 +26,7 @@ function PLUGIN:RestartMap(ply, time)
 	end)
 end
 PLUGIN:AddCommand("restart", PLUGIN.RestartMap)
-	:SetAccess(ACCESS_MAP)
+	:SetAccess(uac.auth.access.map)
 	:SetDescription("Restarts the current map")
 	:AddParameter(uac.command.number(0, math.huge, 0))
 
@@ -34,5 +34,5 @@ function PLUGIN:CancelRestartMap(ply, command, args)
 	timer.Remove("uac_restartmap")
 end
 PLUGIN:AddCommand("cancelrestart", PLUGIN.CancelRestartMap)
-	:SetAccess(ACCESS_MAP)
+	:SetAccess(uac.auth.access.map)
 	:SetDescription("Cancels restart")

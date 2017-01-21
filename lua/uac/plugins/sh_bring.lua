@@ -16,6 +16,6 @@ function PLUGIN:Bring(ply, target)
 	end
 end
 PLUGIN:AddCommand("bring", PLUGIN.Bring)
-	:SetAccess(ACCESS_SLAY)
+	:SetAccess(uac.auth.access.slay)
 	:SetDescription("Bring the specified user to yourself")
 	:AddParameter(uac.command.player)

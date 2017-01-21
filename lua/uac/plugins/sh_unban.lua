@@ -6,7 +6,7 @@ function PLUGIN:Unban(ply, target, reason)
 	uac.ban.Remove(target, reason, ply)
 end
 PLUGIN:AddCommand("unban", PLUGIN.Unban)
-	:SetAccess(ACCESS_BAN)
+	:SetAccess(uac.auth.access.ban)
 	:SetDescription("Removes a ban from the database")
 	:AddParameter(uac.command.player)
 	:AddParameter(uac.command.string("Unbanned from server"))

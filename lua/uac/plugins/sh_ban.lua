@@ -9,7 +9,7 @@ function PLUGIN:Ban(ply, target, time, reason)
 	target:Kick(reason)
 end
 PLUGIN:AddCommand("ban", PLUGIN.Ban)
-	:SetAccess(ACCESS_BAN)
+	:SetAccess(uac.auth.access.ban)
 	:SetDescription("Bans the specified user with optional reason")
 	:AddParameter(uac.command.player)
 	:AddParameter(uac.command.number(0, math.huge, 5))

@@ -16,6 +16,6 @@ function PLUGIN:EnterVehicle(ply, target)
 	end
 end
 PLUGIN:AddCommand("enter", PLUGIN.EnterVehicle)
-	:SetAccess(ACCESS_SLAY)
+	:SetAccess(uac.auth.access.slay)
 	:SetDescription("Forces a user to enter the vehicle you're looking at")
 	:AddParameter(uac.command.player)

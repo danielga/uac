@@ -10,6 +10,6 @@ function PLUGIN:RespawnPlayer(ply, target)
 	target:SetEyeAngles(ang)
 end
 PLUGIN:AddCommand("respawn", PLUGIN.RespawnPlayer)
-	:SetAccess(ACCESS_SLAY)
+	:SetAccess(uac.auth.access.slay)
 	:SetDescription("Respawns a user")
 	:AddParameter(uac.command.player(uac.command.optional))

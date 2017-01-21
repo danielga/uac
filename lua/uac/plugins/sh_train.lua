@@ -28,7 +28,7 @@ function PLUGIN:TrainFuck(ply, targets)
 	end
 end
 PLUGIN:AddCommand("trainfuck", PLUGIN.TrainFuck)
-	:SetAccess(ACCESS_SLAY)
+	:SetAccess(uac.auth.access.slay)
 	:SetDescription("Slays a player in a awesome way")
 	:AddParameter(uac.command.players)
 
@@ -63,7 +63,7 @@ function PLUGIN:TrainBan(ply, target, time, reason)
 	end)
 end
 PLUGIN:AddCommand("trainban", PLUGIN.TrainBan)
-	:SetAccess(ACCESS_BAN)
+	:SetAccess(uac.auth.access.ban)
 	:SetDescription("Bans a player in a awesome way")
 	:AddParameter(uac.command.player)
 	:AddParameter(uac.command.number(0, math.huge, 5))
@@ -89,7 +89,7 @@ function PLUGIN:TrainKick(ply, target, reason)
 	end)
 end
 PLUGIN:AddCommand("trainkick", PLUGIN.TrainKick)
-	:SetAccess(ACCESS_KICK)
+	:SetAccess(uac.auth.access.kick)
 	:SetDescription("Kicks a player in a awesome way")
 	:AddParameter(uac.command.player)
 	:AddParameter(uac.command.string("Kicked from server"))

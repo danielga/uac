@@ -18,6 +18,6 @@ function PLUGIN:Noclip(ply, target)
 	end
 end
 PLUGIN:AddCommand("noclip", PLUGIN.Noclip)
-	:SetAccess(ACCESS_SLAY)
+	:SetAccess(uac.auth.access.slay)
 	:SetDescription("Toggles noclip for a user/yourself")
 	:AddParameter(uac.command.player(uac.command.optional))

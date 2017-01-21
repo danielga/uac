@@ -8,6 +8,6 @@ function PLUGIN:StripWeapons(ply, target)
 	end
 end
 PLUGIN:AddCommand("strip", PLUGIN.StripWeapons)
-	:SetAccess(ACCESS_SLAY)
+	:SetAccess(uac.auth.access.slay)
 	:SetDescription("Strips a player of their weapons")
 	:AddParameter(uac.command.player)

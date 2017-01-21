@@ -8,7 +8,7 @@ function PLUGIN:SetHealth(ply, target, health)
 	end
 end
 PLUGIN:AddCommand("hp", PLUGIN.SetHealth)
-	:SetAccess(ACCESS_SLAY)
+	:SetAccess(uac.auth.access.slay)
 	:SetDescription("Sets a users health")
 	:AddParameter(uac.command.player)
 	:AddParameter(uac.command.number(1, 2147483647))

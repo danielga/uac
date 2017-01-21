@@ -7,7 +7,7 @@ function PLUGIN:Kick(ply, target, reason)
 	target:Kick(reason)
 end
 PLUGIN:AddCommand("kick", PLUGIN.Kick)
-	:SetAccess(ACCESS_KICK)
+	:SetAccess(uac.auth.access.kick)
 	:SetDescription("Kicks the specified user with optional reason")
 	:AddParameter(uac.command.player)
 	:AddParameter(uac.command.string("Kicked from server"))

@@ -1,3 +1,39 @@
+uac.auth = uac.auth or {
+	users = {},
+	access = {
+		serverowner = "abcdefghijklmnopqrstuvxyz",
+		superadmin = "abcdefghijklmnopqrstuvxy",
+		admin = "abcdefghijmpqrtuv",
+
+		all = "",
+		none = nil,
+		immunity = "a",
+		reserv = "b",
+		kick = "c",
+		ban = "d",
+		slay = "e",
+		map = "f",
+		cvar = "g",
+		cfg = "h",
+		chat = "i",
+		vote = "j",
+		password = "k",
+		rcon = "l",
+		prop = "m",
+		ent = "n",
+		custom_a = "o", --super
+		custom_b = "p", --full
+		custom_c = "q", --basic
+		custom_d = "r", --lower
+		ecs_a = "s", --super
+		ecs_b = "t", --full
+		ecs_c = "u", --basic
+		ecs_d = "v", --lower
+
+		serverowner = "z"
+	}
+}
+
 local PLAYER = FindMetaTable("Player")
 
 local SpecialPlayer

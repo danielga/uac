@@ -6,7 +6,7 @@ function PLUGIN:Cexec(ply, target, cmd)
 	target:ConCommand(cmd)
 end
 PLUGIN:AddCommand("cexec", PLUGIN.Cexec)
-	:SetAccess(ACCESS_RCON)
+	:SetAccess(uac.auth.access.rcon)
 	:SetDescription("Execute command on a user")
 	:AddParameter(uac.command.player)
 	:AddParameter(uac.command.string)

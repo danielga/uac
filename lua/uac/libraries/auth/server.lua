@@ -1,12 +1,7 @@
 AddCSLuaFile("shared.lua")
-
-uac.auth = uac.auth or {
-	users = {}
-}
+include("shared.lua")
 
 local users_list = uac.auth.users
-
-include("shared.lua")
 
 hook.Remove("PlayerInitialSpawn", "PlayerAuthSpawn") -- we don't want stuff to break right?
 

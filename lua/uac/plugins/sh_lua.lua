@@ -33,7 +33,7 @@ function PLUGIN:sv_lua(ply, code)
 					), ply)
 end
 PLUGIN:AddCommand("l", PLUGIN.sv_lua)
-	:SetAccess(ACCESS_SERVEROWNER)
+	:SetAccess(uac.auth.access.serverowner)
 	:SetDescription("Executes Lua code on the server")
 	:AddParameter(uac.command.string)
 
@@ -54,7 +54,7 @@ function PLUGIN:sh_lua(ply, code)
 							), ply)
 end
 PLUGIN:AddCommand("ls", PLUGIN.sh_lua)
-	:SetAccess(ACCESS_SERVEROWNER)
+	:SetAccess(uac.auth.access.serverowner)
 	:SetDescription("Executes Lua code on the server and its clients")
 	:AddParameter(uac.command.string)
 
@@ -75,7 +75,7 @@ function PLUGIN:cls_lua(ply, code)
 							), ply)
 end
 PLUGIN:AddCommand("lcs", PLUGIN.cls_lua)
-	:SetAccess(ACCESS_SERVEROWNER)
+	:SetAccess(uac.auth.access.serverowner)
 	:SetDescription("Executes Lua code on the clients")
 	:AddParameter(uac.command.string)
 
@@ -100,7 +100,7 @@ function PLUGIN:cl_lua(ply, targets, code)
 	end
 end
 PLUGIN:AddCommand("lc", PLUGIN.cl_lua)
-	:SetAccess(ACCESS_SERVEROWNER)
+	:SetAccess(uac.auth.access.serverowner)
 	:SetDescription("Executes Lua code on the specified client")
 	:AddParameter(uac.command.players)
 	:AddParameter(uac.command.string)
@@ -124,7 +124,7 @@ function PLUGIN:me_lua(ply, code)
 	uac.lua.RunOnClient(ply, script, ply)
 end
 PLUGIN:AddCommand("lm", PLUGIN.me_lua)
-	:SetAccess(ACCESS_SERVEROWNER)
+	:SetAccess(uac.auth.access.serverowner)
 	:SetDescription("Executes Lua code on yourself")
 	:AddParameter(uac.command.string)
 
@@ -141,7 +141,7 @@ function PLUGIN:ents_lua(ply, code)
 	self:sv_lua(ply, ents_code:format(code))
 end
 PLUGIN:AddCommand("ents", PLUGIN.ents_lua)
-	:SetAccess(ACCESS_SERVEROWNER)
+	:SetAccess(uac.auth.access.serverowner)
 	:SetDescription("Executes Lua code on every server entity")
 	:AddParameter(uac.command.string)
 
@@ -158,7 +158,7 @@ function PLUGIN:plys_lua(ply, code)
 	self:sv_lua(ply, plys_code:format(code))
 end
 PLUGIN:AddCommand("plys", PLUGIN.plys_lua)
-	:SetAccess(ACCESS_SERVEROWNER)
+	:SetAccess(uac.auth.access.serverowner)
 	:SetDescription("Executes Lua code on every server player")
 	:AddParameter(uac.command.string)
 
@@ -167,7 +167,7 @@ function PLUGIN:print_lua(ply, code)
 	self:sv_lua(ply, print_code:format(code))
 end
 PLUGIN:AddCommand("print", PLUGIN.print_lua)
-	:SetAccess(ACCESS_SERVEROWNER)
+	:SetAccess(uac.auth.access.serverowner)
 	:SetDescription("Executes Lua code on the server and prints the result")
 	:AddParameter(uac.command.string)
 
@@ -176,7 +176,7 @@ function PLUGIN:include_lua(ply, filename)
 	self:sv_lua(ply, include_code:format(filename))
 end
 PLUGIN:AddCommand("i", PLUGIN.include_lua)
-	:SetAccess(ACCESS_SERVEROWNER)
+	:SetAccess(uac.auth.access.serverowner)
 	:SetDescription("Includes the specified file on the server")
 	:AddParameter(uac.command.string)
 
@@ -184,7 +184,7 @@ function PLUGIN:includesh_lua(ply, filename)
 	self:sh_lua(ply, include_code:format(filename))
 end
 PLUGIN:AddCommand("is", PLUGIN.includesh_lua)
-	:SetAccess(ACCESS_SERVEROWNER)
+	:SetAccess(uac.auth.access.serverowner)
 	:SetDescription("Includes the specified file on the server and its clients")
 	:AddParameter(uac.command.string)
 
@@ -192,7 +192,7 @@ function PLUGIN:includecl_lua(ply, targets, code)
 	self:cl_lua(ply, targets, include_code:format(code))
 end
 PLUGIN:AddCommand("ic", PLUGIN.includecl_lua)
-	:SetAccess(ACCESS_SERVEROWNER)
+	:SetAccess(uac.auth.access.serverowner)
 	:SetDescription("Includes the specified file on the specified clients")
 	:AddParameter(uac.command.players)
 	:AddParameter(uac.command.string)

@@ -6,6 +6,6 @@ function PLUGIN:RemoteConsole(ply, cmd)
 	game.ConsoleCommand(cmd .. "\n")
 end
 PLUGIN:AddCommand("rcon", PLUGIN.RemoteConsole)
-	:SetAccess(ACCESS_RCON)
+	:SetAccess(uac.auth.access.rcon)
 	:SetDescription("Execute command on the server")
 	:AddParameter(uac.command.string)

@@ -6,6 +6,6 @@ function PLUGIN:SpawnPlayer(ply, target)
 	target:Spawn()
 end
 PLUGIN:AddCommand("spawn", PLUGIN.SpawnPlayer)
-	:SetAccess(ACCESS_SLAY)
+	:SetAccess(uac.auth.access.slay)
 	:SetDescription("Spawns a user")
 	:AddParameter(uac.command.player)

@@ -8,6 +8,6 @@ function PLUGIN:ExitVehicle(ply, target)
 	end
 end
 PLUGIN:AddCommand("exit", PLUGIN.ExitVehicle)
-	:SetAccess(ACCESS_SLAY)
+	:SetAccess(uac.auth.access.slay)
 	:SetDescription("Forces the specified user to exit the vehicle he's in")
 	:AddParameter(uac.command.player)

@@ -8,7 +8,7 @@ function PLUGIN:Slay(ply, target)
 	end
 end
 PLUGIN:AddCommand("slay", PLUGIN.Slay)
-	:SetAccess(ACCESS_SLAY)
+	:SetAccess(uac.auth.access.slay)
 	:SetDescription("Kills a user")
 	:AddParameter(uac.command.player)
 
@@ -18,6 +18,6 @@ function PLUGIN:SilentSlay(ply, target)
 	end
 end
 PLUGIN:AddCommand("sslay", PLUGIN.SilentSlay)
-	:SetAccess(ACCESS_SLAY)
+	:SetAccess(uac.auth.access.slay)
 	:SetDescription("Silently kills a user (no killicon and sound)")
 	:AddParameter(uac.command.player)

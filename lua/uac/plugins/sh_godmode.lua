@@ -9,7 +9,7 @@ function PLUGIN:EnableGod(ply, target)
 	end
 end
 PLUGIN:AddCommand("god", PLUGIN.EnableGod)
-	:SetAccess(ACCESS_SLAY)
+	:SetAccess(uac.auth.access.slay)
 	:SetDescription("Enables godmode for a user")
 	:AddParameter(uac.command.player)
 
@@ -20,7 +20,7 @@ function PLUGIN:DisableGod(ply, target)
 	end
 end
 PLUGIN:AddCommand("ungod", PLUGIN.DisableGod)
-	:SetAccess(ACCESS_SLAY)
+	:SetAccess(uac.auth.access.slay)
 	:SetDescription("Disables godmode for a user")
 	:AddParameter(uac.command.player)
 
