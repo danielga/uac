@@ -30,7 +30,7 @@ uac.auth = uac.auth or {
 		ecs_c = "u", --basic
 		ecs_d = "v", --lower
 
-		serverowner = "z"
+		owner = "z"
 	}
 }
 
