@@ -1,9 +1,15 @@
-
-
 local PLAYER = FindMetaTable("Player")
 
-local function SpecialPlayer(ply)
-	return game.SinglePlayer() or ply:IsListenServerHost()
+local SpecialPlayer
+
+if SERVER then
+	local function SpecialPlayer(ply)
+		return game.SinglePlayer() or ply:IsListenServerHost()
+	end
+else
+	local function SpecialPlayer()
+		return game.SinglePlayer()
+	end
 end
 
 function PLAYER:HasUserFlag(flag)
