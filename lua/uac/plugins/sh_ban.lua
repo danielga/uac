@@ -3,7 +3,7 @@ PLUGIN.Description = "Adds a command to ban players."
 PLUGIN.Author = "MetaMan"
 
 function PLUGIN:Ban(ply, target, time, reason)
-	reason = reason:gsub("[;,:.\\/]", "_")
+	reason = string.gsub(reason, "[;,:.\\/]", "_")
 
 	target:Ban(time, reason)
 	target:Kick(reason)

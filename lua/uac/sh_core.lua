@@ -10,10 +10,11 @@ end
 
 function uac.IncludeLibrary(path)
 	if path then
-		if file.IsDir(("uac/libraries/%s"):format(path), "LUA") then
-			local sv_file = ("uac/libraries/%s/server.lua"):format(path)
-			local sh_file = ("uac/libraries/%s/shared.lua"):format(path)
-			local cl_file = ("uac/libraries/%s/client.lua"):format(path)
+		local folder = string.format("uac/libraries/%s", path)
+		if file.IsDir(folder, "LUA") then
+			local sv_file = folder .. "/server.lua"
+			local sh_file = folder .. "/shared.lua"
+			local cl_file = folder .. "/client.lua"
 
 			if file.Exists(sv_file, "LUA") and SERVER then
 				print("[UAC] Library: " .. path)
@@ -26,9 +27,9 @@ function uac.IncludeLibrary(path)
 				include(sh_file)
 			end
 		else
-			local sh_file = ("uac/libraries/sh_%s.lua"):format(path)
-			local sv_file = ("uac/libraries/sv_%s.lua"):format(path)
-			local cl_file = ("uac/libraries/cl_%s.lua"):format(path)
+			local sh_file = string.format("uac/libraries/sh_%s.lua", path)
+			local sv_file = string.format("uac/libraries/sv_%s.lua", path)
+			local cl_file = string.format("uac/libraries/cl_%s.lua", path)
 
 			if file.Exists(sh_file, "LUA") then
 				print("[UAC] Library: " .. path)
@@ -59,7 +60,7 @@ function uac.IncludeLibrary(path)
 	else
 		local files, directories = file.Find("uac/libraries/*", "LUA")
 		for i = 1, #files do
-			local match = files[i]:match("^%a%a_(%w+)%.lua$")
+			local match = string.match(files[i], "^%a%a_(%w+)%.lua$")
 			if not included_libs[match] then
 				uac.IncludeLibrary(match)
 				included_libs[match] = uac[match] or true

@@ -3,7 +3,7 @@ PLUGIN.Description = "Adds a command to kick players."
 PLUGIN.Author = "MetaMan"
 
 function PLUGIN:Kick(ply, target, reason)
-	reason = reason:gsub("[;,:.\\/]", "_")
+	reason = string.gsub(reason, "[;,:.\\/]", "_")
 	target:Kick(reason)
 end
 PLUGIN:AddCommand("kick", PLUGIN.Kick)
