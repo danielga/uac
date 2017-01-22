@@ -11,50 +11,51 @@ end
 function uac.IncludeLibrary(path)
 	if path then
 		local folder = string.format("uac/libraries/%s", path)
-		if file.IsDir(folder, "LUA") then
-			local sv_file = folder .. "/server.lua"
-			local sh_file = folder .. "/shared.lua"
-			local cl_file = folder .. "/client.lua"
 
-			if file.Exists(sv_file, "LUA") and SERVER then
-				print("[UAC] Library: " .. path)
-				include(sv_file)
-			elseif file.Exists(cl_file, "LUA") and CLIENT then
-				print("[UAC] Library: " .. path)
+		local sv_file = folder .. "/server.lua"
+		local sh_file = folder .. "/shared.lua"
+		local cl_file = folder .. "/client.lua"
+
+		if SERVER and file.Exists(sv_file, "LUA") then
+			print("[UAC] Library (serverside) directory: " .. path)
+			include(sv_file)
+			return
+		elseif CLIENT and file.Exists(cl_file, "LUA") then
+			print("[UAC] Library (clientside) directory: " .. path)
+			include(cl_file)
+			return
+		elseif file.Exists(sh_file, "LUA") then
+			print("[UAC] Library (shared) directory: " .. path)
+			include(sh_file)
+			return
+		end
+
+		sh_file = string.format("uac/libraries/sh_%s.lua", path)
+		sv_file = string.format("uac/libraries/sv_%s.lua", path)
+		cl_file = string.format("uac/libraries/cl_%s.lua", path)
+
+		if file.Exists(sh_file, "LUA") then
+			print("[UAC] Library (shared) file: " .. path)
+
+			if SERVER then
+				AddCSLuaFile(sh_file)
+			end
+
+			include(sh_file)
+		end
+
+		if SERVER and file.Exists(sv_file, "LUA") then
+			print("[UAC] Library (serverside) file: " .. path)
+			include(sv_file)
+		end
+
+		if file.Exists(cl_file, "LUA") then
+			print("[UAC] Library (clientside) file: " .. path)
+
+			if CLIENT then
 				include(cl_file)
-			elseif file.Exists(sh_file, "LUA") then
-				print("[UAC] Library: " .. path)
-				include(sh_file)
-			end
-		else
-			local sh_file = string.format("uac/libraries/sh_%s.lua", path)
-			local sv_file = string.format("uac/libraries/sv_%s.lua", path)
-			local cl_file = string.format("uac/libraries/cl_%s.lua", path)
-
-			if file.Exists(sh_file, "LUA") then
-				print("[UAC] Library: " .. path)
-
-				if SERVER then
-					AddCSLuaFile(sh_file)
-				end
-
-				include(sh_file)
-			end
-
-			if file.Exists(sv_file, "LUA") and SERVER then
-				print("[UAC] Library: " .. path)
-
-				include(sv_file)
-			end
-
-			if file.Exists(cl_file, "LUA") then
-				print("[UAC] Library: " .. path)
-
-				if CLIENT then
-					include(cl_file)
-				else
-					AddCSLuaFile(cl_file)
-				end
+			else
+				AddCSLuaFile(cl_file)
 			end
 		end
 	else

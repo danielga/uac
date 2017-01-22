@@ -127,27 +127,28 @@ function uac.plugin.Include(name)
 		_G.PLUGIN = plugin
 
 		local folder = string.format("uac/plugins/%s", name)
-		if file.IsDir(folder, "LUA") then
-			local sv_file = string.format("%s/server.lua", folder)
-			local sh_file = string.format("%s/shared.lua", folder)
-			local cl_file = string.format("%s/client.lua", folder)
 
-			plugin.folder = folder
+		local sv_file = folder .. "/server.lua"
+		local sh_file = folder .. "/shared.lua"
+		local cl_file = folder .. "/client.lua"
 
-			if file.Exists(sv_file, "LUA") and SERVER then
-				loaded = true
-				include(sv_file)
-			elseif file.Exists(cl_file, "LUA") and CLIENT then
-				loaded = true
-				include(cl_file)
-			elseif file.Exists(sh_file, "LUA") then
-				loaded = true
-				include(sh_file)
-			end
-		else
-			local sh_file = string.format("uac/plugins/sh_%s.lua", name)
-			local sv_file = string.format("uac/plugins/sv_%s.lua", name)
-			local cl_file = string.format("uac/plugins/cl_%s.lua", name)
+		plugin.folder = folder
+
+		if SERVER and file.Exists(sv_file, "LUA") then
+			loaded = true
+			include(sv_file)
+		elseif CLIENT and file.Exists(cl_file, "LUA") then
+			loaded = true
+			include(cl_file)
+		elseif file.Exists(sh_file, "LUA") then
+			loaded = true
+			include(sh_file)
+		end
+
+		if not loaded then
+			sh_file = string.format("uac/plugins/sh_%s.lua", name)
+			sv_file = string.format("uac/plugins/sv_%s.lua", name)
+			cl_file = string.format("uac/plugins/cl_%s.lua", name)
 
 			plugin.folder = "uac/plugins"
 
@@ -161,7 +162,7 @@ function uac.plugin.Include(name)
 				include(sh_file)
 			end
 
-			if file.Exists(sv_file, "LUA") and SERVER then
+			if SERVER and file.Exists(sv_file, "LUA") then
 				loaded = true
 				include(sv_file)
 			end
