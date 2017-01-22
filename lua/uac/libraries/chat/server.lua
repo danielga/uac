@@ -14,14 +14,13 @@ function PLAYER:Gag(boolean)
 end
 
 function PLAYER:ChatText(...)
-	local tbl = {...}
-	local size = #tbl
+	local size = select("#", ...)
 
 	net.Start("uac_chat_text")
 
 	net.WriteUInt(size, 8)
 	for i = 1, size do
-		local val = tbl[i]
+		local val = select(i, ...)
 		local valtype = type(val)
 		if valtype == "table" then
 			net.WriteBit(true)

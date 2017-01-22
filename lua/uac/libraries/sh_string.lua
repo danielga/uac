@@ -90,12 +90,12 @@ function uac.string.Format(text, ...)
 	for match in string_gmatch(text, "({%d+})") do
 		local match_number = tonumber(string_sub(match, 2, -2))
 		if match_number ~= nil and matched[match_number] == nil then
-			if substitutes[match_number] == nil then
+			if select(match_number, ...) == nil then
 				error(string_format("No substitute found for {%i}.", match_number))
 			end
 
 			matched[match_number] = true
-			text = string_gsub(text, match, tostring(substitutes[match_number]))
+			text = string_gsub(text, match, tostring(select(match_number, ...)))
 		end
 	end
 
