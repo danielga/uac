@@ -33,7 +33,7 @@ PLUGIN:AddCommand("trainfuck", PLUGIN.TrainFuck)
 	:AddParameter(uac.command.players)
 
 function PLUGIN:TrainBan(ply, target, time, reason)
-	reason = reason:gsub("[;,:.\\/]", "_")
+	reason = string.gsub(reason, "[;,:.\\/]", "_")
 
 	target:SetMoveType(MOVETYPE_WALK)
 	local train = ents.Create("uac_train")
@@ -70,7 +70,7 @@ PLUGIN:AddCommand("trainban", PLUGIN.TrainBan)
 	:AddParameter(uac.command.string("Banned from server"))
 
 function PLUGIN:TrainKick(ply, target, reason)
-	reason = reason:gsub("[;,:.\\/]", "_")
+	reason = string.gsub(reason, "[;,:.\\/]", "_")
 
 	target:SetMoveType(MOVETYPE_WALK)
 	local train = ents.Create("uac_train")

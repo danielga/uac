@@ -61,7 +61,7 @@ function PLAYER:HasUserFlag(flag)
 		return true
 	end
 
-	if self:GetUserFlags():find(flag, 1, true) then
+	if string.find(self:GetUserFlags(), flag, 1, true) then
 		return true
 	end
 

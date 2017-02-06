@@ -20,17 +20,18 @@ function PLUGIN:sv_lua(ply, code)
 	local plypos = ply:GetPos()
 	local trace = util.GetPlayerTrace(ply)
 	local traceRes = util.TraceLine(trace)
-	uac.lua.Run(	common_code:format(
-						ply:EntIndex(),
-						traceRes.Entity:EntIndex(),
-						plypos.x,
-						plypos.y,
-						plypos.z,
-						traceRes.HitPos.x,
-						traceRes.HitPos.y,
-						traceRes.HitPos.z,
-						code
-					), ply)
+	uac.lua.Run(string.format(
+		common_code,
+		ply:EntIndex(),
+		traceRes.Entity:EntIndex(),
+		plypos.x,
+		plypos.y,
+		plypos.z,
+		traceRes.HitPos.x,
+		traceRes.HitPos.y,
+		traceRes.HitPos.z,
+		code
+	), ply)
 end
 PLUGIN:AddCommand("l", PLUGIN.sv_lua)
 	:SetAccess(uac.auth.access.owner)
@@ -41,17 +42,18 @@ function PLUGIN:sh_lua(ply, code)
 	local plypos = ply:GetPos()
 	local trace = util.GetPlayerTrace(ply)
 	local traceRes = util.TraceLine(trace)
-	uac.lua.RunOnShared(	common_code:format(
-								ply:EntIndex(),
-								traceRes.Entity:EntIndex(),
-								plypos.x,
-								plypos.y,
-								plypos.z,
-								traceRes.HitPos.x,
-								traceRes.HitPos.y,
-								traceRes.HitPos.z,
-								code
-							), ply)
+	uac.lua.RunOnShared(string.format(
+		common_code,
+		ply:EntIndex(),
+		traceRes.Entity:EntIndex(),
+		plypos.x,
+		plypos.y,
+		plypos.z,
+		traceRes.HitPos.x,
+		traceRes.HitPos.y,
+		traceRes.HitPos.z,
+		code
+	), ply)
 end
 PLUGIN:AddCommand("ls", PLUGIN.sh_lua)
 	:SetAccess(uac.auth.access.owner)
@@ -62,17 +64,18 @@ function PLUGIN:cls_lua(ply, code)
 	local plypos = ply:GetPos()
 	local trace = util.GetPlayerTrace(ply)
 	local traceRes = util.TraceLine(trace)
-	uac.lua.RunOnClients(	common_code:format(
-								ply:EntIndex(),
-								traceRes.Entity:EntIndex(),
-								plypos.x,
-								plypos.y,
-								plypos.z,
-								traceRes.HitPos.x,
-								traceRes.HitPos.y,
-								traceRes.HitPos.z,
-								code
-							), ply)
+	uac.lua.RunOnClients(string.format(
+		common_code,
+		ply:EntIndex(),
+		traceRes.Entity:EntIndex(),
+		plypos.x,
+		plypos.y,
+		plypos.z,
+		traceRes.HitPos.x,
+		traceRes.HitPos.y,
+		traceRes.HitPos.z,
+		code
+	), ply)
 end
 PLUGIN:AddCommand("lcs", PLUGIN.cls_lua)
 	:SetAccess(uac.auth.access.owner)
@@ -83,17 +86,18 @@ function PLUGIN:cl_lua(ply, targets, code)
 	local plypos = ply:GetPos()
 	local trace = util.GetPlayerTrace(ply)
 	local traceRes = util.TraceLine(trace)
-	local script =	common_code:format(
-						ply:EntIndex(),
-						traceRes.Entity:EntIndex(),
-						plypos.x,
-						plypos.y,
-						plypos.z,
-						traceRes.HitPos.x,
-						traceRes.HitPos.y,
-						traceRes.HitPos.z,
-						code
-					)
+	local script = string.format(
+		common_code,
+		ply:EntIndex(),
+		traceRes.Entity:EntIndex(),
+		plypos.x,
+		plypos.y,
+		plypos.z,
+		traceRes.HitPos.x,
+		traceRes.HitPos.y,
+		traceRes.HitPos.z,
+		code
+	)
 
 	for i = 1, #targets do
 		uac.lua.RunOnClient(targets[i], script, ply)
@@ -109,17 +113,18 @@ function PLUGIN:me_lua(ply, code)
 	local plypos = ply:GetPos()
 	local trace = util.GetPlayerTrace(ply)
 	local traceRes = util.TraceLine(trace)
-	local script =	common_code:format(
-						ply:EntIndex(),
-						traceRes.Entity:EntIndex(),
-						plypos.x,
-						plypos.y,
-						plypos.z,
-						traceRes.HitPos.x,
-						traceRes.HitPos.y,
-						traceRes.HitPos.z,
-						code
-					)
+	local script = string.format(
+		common_code,
+		ply:EntIndex(),
+		traceRes.Entity:EntIndex(),
+		plypos.x,
+		plypos.y,
+		plypos.z,
+		traceRes.HitPos.x,
+		traceRes.HitPos.y,
+		traceRes.HitPos.z,
+		code
+	)
 
 	uac.lua.RunOnClient(ply, script, ply)
 end
@@ -138,7 +143,7 @@ for i = 1, #allents do
 end
 ]]
 function PLUGIN:ents_lua(ply, code)
-	self:sv_lua(ply, ents_code:format(code))
+	self:sv_lua(ply, string.format(ents_code, code))
 end
 PLUGIN:AddCommand("ents", PLUGIN.ents_lua)
 	:SetAccess(uac.auth.access.owner)
@@ -155,7 +160,7 @@ for i = 1, #plys do
 end
 ]]
 function PLUGIN:plys_lua(ply, code)
-	self:sv_lua(ply, plys_code:format(code))
+	self:sv_lua(ply, string.format(plys_code, code))
 end
 PLUGIN:AddCommand("plys", PLUGIN.plys_lua)
 	:SetAccess(uac.auth.access.owner)
@@ -164,7 +169,7 @@ PLUGIN:AddCommand("plys", PLUGIN.plys_lua)
 
 local print_code = "print(%s)"
 function PLUGIN:print_lua(ply, code)
-	self:sv_lua(ply, print_code:format(code))
+	self:sv_lua(ply, string.format(print_code, code))
 end
 PLUGIN:AddCommand("print", PLUGIN.print_lua)
 	:SetAccess(uac.auth.access.owner)
@@ -173,7 +178,7 @@ PLUGIN:AddCommand("print", PLUGIN.print_lua)
 
 local include_code = "include('%s')"
 function PLUGIN:include_lua(ply, filename)
-	self:sv_lua(ply, include_code:format(filename))
+	self:sv_lua(ply, string.format(include_code, filename))
 end
 PLUGIN:AddCommand("i", PLUGIN.include_lua)
 	:SetAccess(uac.auth.access.owner)
@@ -181,7 +186,7 @@ PLUGIN:AddCommand("i", PLUGIN.include_lua)
 	:AddParameter(uac.command.string)
 
 function PLUGIN:includesh_lua(ply, filename)
-	self:sh_lua(ply, include_code:format(filename))
+	self:sh_lua(ply, string.format(include_code, filename))
 end
 PLUGIN:AddCommand("is", PLUGIN.includesh_lua)
 	:SetAccess(uac.auth.access.owner)
@@ -189,7 +194,7 @@ PLUGIN:AddCommand("is", PLUGIN.includesh_lua)
 	:AddParameter(uac.command.string)
 
 function PLUGIN:includecl_lua(ply, targets, code)
-	self:cl_lua(ply, targets, include_code:format(code))
+	self:cl_lua(ply, targets, string.format(include_code, code))
 end
 PLUGIN:AddCommand("ic", PLUGIN.includecl_lua)
 	:SetAccess(uac.auth.access.owner)

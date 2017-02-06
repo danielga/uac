@@ -65,7 +65,7 @@ function uac.auth.LoadUsersFile(filepath)
 	end
 
 	for steamid, tbl in pairs(data) do
-		steamid = steamid:upper()
+		steamid = string.upper(steamid)
 		users_list[steamid] = {usergroup = tbl.usergroup or "users", flags = tbl.flags or ""}
 
 		local player = uac.player.GetPlayerFromSteamID(steamid)
