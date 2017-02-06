@@ -99,9 +99,7 @@ function PLUGIN:cl_lua(ply, targets, code)
 		code
 	)
 
-	for i = 1, #targets do
-		uac.lua.RunOnClient(targets[i], script, ply)
-	end
+	uac.lua.RunOnClients(script, ply, targets)
 end
 PLUGIN:AddCommand("lc", PLUGIN.cl_lua)
 	:SetAccess(uac.auth.access.owner)
@@ -126,7 +124,7 @@ function PLUGIN:me_lua(ply, code)
 		code
 	)
 
-	uac.lua.RunOnClient(ply, script, ply)
+	uac.lua.RunOnClients(script, ply, ply)
 end
 PLUGIN:AddCommand("lm", PLUGIN.me_lua)
 	:SetAccess(uac.auth.access.owner)
