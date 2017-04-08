@@ -85,7 +85,7 @@ function uac.ban.Add(ident, time, reason, issuer, name)
 		userdata.Name = ident:Name()
 		userdata.Player = ident
 
-		local uactable = ident:UACGetTable()
+		local uactable = ident:GetUACTable()
 		uactable.lastbanupdate = CurTime()
 		uactable.banned = true
 	elseif uac.string.IsSteamIDValid(ident) then
@@ -139,7 +139,7 @@ if META then
 	end
 
 	function META:IsBanned() -- in case you want a "let banned players come in with restrictions"
-		local uactable = self:UACGetTable()
+		local uactable = self:GetUACTable()
 		local curtime = CurTime() -- only update the cached value each 15 seconds if IsBanned is called frequently
 		if curtime - (uactable.lastbanupdate or 0) >= 15 then
 			uactable.lastbanupdate = curtime

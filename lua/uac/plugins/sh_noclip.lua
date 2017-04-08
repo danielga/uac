@@ -1,6 +1,8 @@
-PLUGIN.Name = "Noclip"
+PLUGIN.Name = "Player noclip toggling"
 PLUGIN.Description = "Adds a command to noclip players."
 PLUGIN.Author = "MetaMan"
+
+PLUGIN:AddPermission("noclip", "Allows users to toggle noclip on players")
 
 function PLUGIN:Noclip(ply, target)
 	if target ~= nil then
@@ -18,6 +20,6 @@ function PLUGIN:Noclip(ply, target)
 	end
 end
 PLUGIN:AddCommand("noclip", PLUGIN.Noclip)
-	:SetAccess(uac.auth.access.slay)
+	:SetPermission("noclip")
 	:SetDescription("Toggles noclip for a user/yourself")
 	:AddParameter(uac.command.player(uac.command.optional))

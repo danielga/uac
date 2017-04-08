@@ -1,8 +1,12 @@
-PLUGIN.Name = "Trains"
+PLUGIN.Name = "I like trains"
 PLUGIN.Description = "Adds commands to apply actions on players through trains."
 PLUGIN.Author = "MetaMan"
 
-function PLUGIN:TrainFuck(ply, targets)
+PLUGIN:AddPermission("trainslay", "Allows users to awesomely slay players with trains")
+PLUGIN:AddPermission("trainkick", "Allows users to awesomely kick players with trains")
+PLUGIN:AddPermission("trainban", "Allows users to awesomely ban players with trains")
+
+function PLUGIN:TrainSlay(ply, targets)
 	for i = 1, #targets do
 		local target = targets[i]
 		target:SetMoveType(MOVETYPE_WALK)
@@ -27,10 +31,35 @@ function PLUGIN:TrainFuck(ply, targets)
 		end)
 	end
 end
-PLUGIN:AddCommand("trainfuck", PLUGIN.TrainFuck)
-	:SetAccess(uac.auth.access.slay)
+PLUGIN:AddCommand("trainslay", PLUGIN.TrainSlay)
+	:SetPermission("trainslay")
 	:SetDescription("Slays a player in a awesome way")
 	:AddParameter(uac.command.players)
+
+function PLUGIN:TrainKick(ply, target, reason)
+	reason = string.gsub(reason, "[;,:.\\/]", "_")
+
+	target:SetMoveType(MOVETYPE_WALK)
+	local train = ents.Create("uac_train")
+	train:SetPos(target:GetPos() + Vector(0, 0, 100) + target:GetForward() * 1000)
+	local vec = target:GetPos() + Vector(0, 0, 100) - train:GetPos()
+	vec:Normalize()
+	train:SetAngles(vec:Angle() - Angle(0, 90, 0))
+	train:SetOwner(target)
+	train:Spawn()
+	train:Activate()
+
+	train:SetHitCallback(function(self, targ)
+		if IsValid(targ) then
+			targ:Kick(reason)
+		end
+	end)
+end
+PLUGIN:AddCommand("trainkick", PLUGIN.TrainKick)
+	:SetPermission("trainkick")
+	:SetDescription("Kicks a player in a awesome way")
+	:AddParameter(uac.command.player)
+	:AddParameter(uac.command.string("Kicked from server"))
 
 function PLUGIN:TrainBan(ply, target, time, reason)
 	reason = string.gsub(reason, "[;,:.\\/]", "_")
@@ -63,36 +92,11 @@ function PLUGIN:TrainBan(ply, target, time, reason)
 	end)
 end
 PLUGIN:AddCommand("trainban", PLUGIN.TrainBan)
-	:SetAccess(uac.auth.access.ban)
+	:SetPermission("trainban")
 	:SetDescription("Bans a player in a awesome way")
 	:AddParameter(uac.command.player)
 	:AddParameter(uac.command.number(0, math.huge, 5))
 	:AddParameter(uac.command.string("Banned from server"))
-
-function PLUGIN:TrainKick(ply, target, reason)
-	reason = string.gsub(reason, "[;,:.\\/]", "_")
-
-	target:SetMoveType(MOVETYPE_WALK)
-	local train = ents.Create("uac_train")
-	train:SetPos(target:GetPos() + Vector(0, 0, 100) + target:GetForward() * 1000)
-	local vec = target:GetPos() + Vector(0, 0, 100) - train:GetPos()
-	vec:Normalize()
-	train:SetAngles(vec:Angle() - Angle(0, 90, 0))
-	train:SetOwner(target)
-	train:Spawn()
-	train:Activate()
-
-	train:SetHitCallback(function(self, targ)
-		if IsValid(targ) then
-			targ:Kick(reason)
-		end
-	end)
-end
-PLUGIN:AddCommand("trainkick", PLUGIN.TrainKick)
-	:SetAccess(uac.auth.access.kick)
-	:SetDescription("Kicks a player in a awesome way")
-	:AddParameter(uac.command.player)
-	:AddParameter(uac.command.string("Kicked from server"))
 
 ------------------------------------------------------------
 

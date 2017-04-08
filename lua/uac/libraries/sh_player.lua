@@ -1,15 +1,31 @@
 uac.player = uac.player or {}
 
+local PLAYER = FindMetaTable("Player")
+
 if SERVER then
 	util.AddNetworkString("uac_player_notify")
+
+	function PLAYER:Notify(message, type, length)
+		net.Start("uac_player_notify")
+		net.WriteString(message)
+		net.WriteUInt(type, 8)
+		net.WriteUInt(length, 16)
+		net.Send(self)
+	end
 else
 	net.Receive("uac_player_notify", function(len)
 		-- Maximum number of seconds for notifications with this is 65535 which seems reasonable
 		notification.AddLegacy(net.ReadString(), net.ReadUInt(8), net.ReadUInt(16))
 	end)
+
+	function PLAYER:IsListenServerHost()
+		return not uac.misc.IsDedicatedServer() and self:EntIndex() == 1
+	end
 end
 
-local PLAYER = FindMetaTable("Player")
+function PLAYER:IsGameHost()
+	return game.SinglePlayer() or self:IsListenServerHost()
+end
 
 function PLAYER:FindFreeSpace(behind)
 	local plypos = self:GetPos()
@@ -40,74 +56,50 @@ function PLAYER:FindFreeSpace(behind)
 			return Pos - Vector(0, 0, size.z / 2)
 		end
 	end
-
-	return nil
-end
-
-function PLAYER:IsImmune(ply)
-	if not IsValid(ply) or self == ply then
-		return false
-	end
-
-	return (self:IsSuperAdmin() and not ply:IsSuperAdmin()) or (self:IsAdmin() and not ply:IsAdmin())
-end
-
-if SERVER then
-	function PLAYER:Notify(message, type, length)
-		net.Start("uac_player_notify")
-			net.WriteString(message)
-			net.WriteUInt(type, 8)
-			net.WriteUInt(length, 16)
-		net.Send(self)
-	end
 end
 
 function uac.player.GetPlayerFromSteamID(steamid)
-	local plys = player.GetHumans()
+	local plys = player.GetAll()
 	for i = 1, #plys do
 		local ply = plys[i]
-		if ply:SteamID() == steamid then
+		if ply:SteamID() == steamid or ply:SteamID64() == steamid then
 			return ply
 		end
 	end
-
-	return NULL
 end
 
-local function ReversePlayerList(list)
-	local reverse = {}
-	local players = player.GetAll()
-	for i = 1, #players do
-		local ply = players[i]
-		if not table.HasValue(list, ply) then
-			table.insert(reverse, ply)
+local function PlayerListComplement(set, subset)
+	local complement = {}
+	for i = 1, #set do
+		local ply = set[i]
+		if not table.HasValue(subset, ply) then
+			table.insert(complement, ply)
 		end
 	end
 
-	return reverse
+	return complement
 end
 
 local function CompareStrings(target, possible)
-	local targetlen = #target
-	local targetdist = targetlen * 0.5
+	local targetdist = #target * 0.5
 
 	local distance = uac.string.Levenshtein(target, possible)
 	return uac.unicode.Similar(possible, target) or distance <= targetdist, distance
 end
 
 local function StringDistanceSort(a, b)
-	return a:UACGetTable().__string_distance < b:UACGetTable().__string_distance
+	return a:GetUACTable().__string_distance < b:GetUACTable().__string_distance
 end
 
-function uac.player.GetTargets(ply, target, ignore_immunity)
+function uac.player.GetTargets(executor, target, ignore_immunity, every_match)
 	local found = {}
 
-	if target == nil then
+	if target == nil or #target == 0 then
 		return found
 	end
 
-	target = target:Trim()
-	if target == nil or target == "" then
+	target = string.Trim(target)
+	if #target == 0 then
 		return found
 	end
 
@@ -116,92 +108,154 @@ function uac.player.GetTargets(ply, target, ignore_immunity)
 		return plys
 	end
 
-	local pre, reverse = string.sub(target, 1, 1), false
+	local pre, complement = string.sub(target, 1, 1), false
 	if pre == "!" then
-		pre, target, reverse = string.sub(target, 2, 2), string.sub(target, 2), true
+		pre, target, complement = string.sub(target, 2, 2), string.sub(target, 2), true
 	end
 
+	local sort = false
 	local type
-	if pre == "@" then
+	if target == "@this" then
+		type = "this"
+
+		local entity = executor:GetEyeTrace().Entity
+		if IsValid(entity) and entity:IsPlayer() and entity:IsImmune(executor) then
+			table.insert(found, entity)
+		end
+	elseif target == "@me" then
+		type = "me"
+		table.insert(found, executor)
+	elseif target == "@all" then
+		type = "all"
+
+		if not ignore_immunity then
+			for i = 1, #plys do
+				local ply = plys[i]
+				if not ply:IsImmune(executor) then
+					table.insert(found, ply)
+				end
+			end
+		end
+	elseif target == "@random" then
+		type = "random"
+
+		if not ignore_immunity then
+			for i = 1, #plys do
+				local ply = plys[i]
+				if not ply:IsImmune(executor) then
+					table.insert(found, ply)
+				end
+			end
+		end
+
+		if #plys ~= 0 then
+			found = {found[math.random(#found)]}
+		end
+	elseif pre == "@" then
 		type = "teamname"
 		target = string.lower(string.sub(target, 2))
 
 		for i = 1, #plys do
-			local v = plys[i]
-			local lowteam = string.lower(team.GetName(v:Team()))
-			if ignore_immunity or not v:IsImmune(ply) then
-				local good, distance = CompareStrings(target, lowteam)
+			local ply = plys[i]
+			if ignore_immunity or not ply:IsImmune(executor) then
+				local teamname = string.lower(team.GetName(ply:Team()))
+				local good, distance = CompareStrings(target, teamname)
 				if good then
-					v:UACGetTable().__string_distance = distance
-					table.insert(found, v)
+					ply:GetUACTable().__string_distance = distance
+					table.insert(found, ply)
 				end
 			end
 		end
 
-		if reverse then
-			found = ReversePlayerList(found)
-		end
-
-		table.sort(found, StringDistanceSort)
-
-		for i = 1, #found do
-			found[i]:UACGetTable().__string_distance = nil
-		end
-	elseif pre == "#" then
-		type = "userid"
-
-		local userid = tonumber(string.sub(target, 2))
-		if userid == nil then
-			return found, type
-		end
-
-		for i = 1, #plys do
-			local v = plys[i]
-			if v:UserID() == userid and (not ignore_immunity and not v:IsImmune(ply)) then
-				table.insert(found, v)
-			end
-		end
-
-		if reverse then
-			found = ReversePlayerList(found)
-		end
-	elseif uac.string.IsSteamIDValid(target) then
-		type = "steamid"
-
-		for i = 1, #plys do
-			local v = plys[i]
-			if v:SteamID() == target and (not ignore_immunity and not v:IsImmune(ply)) then
-				table.insert(found, v)
-			end
-		end
-
-		if reverse then
-			found = ReversePlayerList(found)
-		end
+		sort = true
 	else
-		type = "name"
-		target = string.lower(target)
+		local ply = player.GetByUniqueID(target)
+		local userid = tonumber(target)
 
-		for i = 1, #plys do
-			local v = plys[i]
-			local lownick = string.lower(v:Nick())
-			if ignore_immunity or not v:IsImmune(ply) then
-				local good, distance = CompareStrings(target, lownick)
-				if good then
-					v:UACGetTable().__string_distance = distance
-					table.insert(found, v)
+		if ply and ply:IsPlayer() then
+			type = "uniqueid"
+			table.insert(found, ply)
+		elseif userid then
+			type = "userid"
+
+			for i = 1, #plys do
+				local ply = plys[i]
+				if (ignore_immunity or not ply:IsImmune(executor)) and ply:UserID() == userid then
+					table.insert(found, ply)
 				end
 			end
-		end
+		elseif uac.string.IsSteamIDValid(target) then
+			type = "steamid"
 
-		if reverse then
-			found = ReversePlayerList(found)
-		end
+			for i = 1, #plys do
+				local ply = plys[i]
+				if (ignore_immunity or not ply:IsImmune(executor)) and ply:SteamID() == target then
+					table.insert(found, ply)
 
+					if not every_match then
+						break
+					end
+				end
+			end
+		elseif uac.string.IsSteamID64Valid(target) then
+			type = "steamid64"
+
+			for i = 1, #plys do
+				local ply = plys[i]
+				if (ignore_immunity or not ply:IsImmune(executor)) and ply:SteamID64() == target then
+					table.insert(found, ply)
+
+					if not every_match then
+						break
+					end
+				end
+			end
+		elseif SERVER and uac.string.IsIPValid(target) then
+			type = "ip"
+
+			for i = 1, #plys do
+				local ply = plys[i]
+				if (ignore_immunity or not ply:IsImmune(executor)) and string.find(ply:IPAddress(), "^" .. target) then
+					table.insert(found, ply)
+
+					if not every_match then
+						break
+					end
+				end
+			end
+		else
+			type = "name"
+			target = string.lower(target)
+
+			for i = 1, #plys do
+				local ply = plys[i]
+				if ignore_immunity or not ply:IsImmune(executor) then
+					local nick = string.lower(ply:Nick())
+					local good, distance = CompareStrings(target, nick)
+					if good then
+						ply:GetUACTable().__string_distance = distance
+						table.insert(found, ply)
+					end
+				end
+			end
+
+			sort = true
+		end
+	end
+
+	if complement then
+		found = PlayerListComplement(plys, found)
+	end
+
+	if sort then
 		table.sort(found, StringDistanceSort)
 
 		for i = 1, #found do
-			found[i]:UACGetTable().__string_distance = nil
+			found[i]:GetUACTable().__string_distance = nil
+		end
+
+		if not every_match and #found > 1 then
+			found = {found[1]}
 		end
 	end
 

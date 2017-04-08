@@ -1,89 +1,29 @@
-uac.auth = uac.auth or {
-	users = {},
-	access = {
-		serverowner = "abcdefghijklmnopqrstuvxyz",
-		superadmin = "abcdefghijklmnopqrstuvxy",
-		admin = "abcdefghijmpqrtuv",
-
-		all = "",
-		none = nil,
-		immunity = "a",
-		reserv = "b",
-		kick = "c",
-		ban = "d",
-		slay = "e",
-		map = "f",
-		cvar = "g",
-		cfg = "h",
-		chat = "i",
-		vote = "j",
-		password = "k",
-		rcon = "l",
-		prop = "m",
-		ent = "n",
-		custom_a = "o", --super
-		custom_b = "p", --full
-		custom_c = "q", --basic
-		custom_d = "r", --lower
-		ecs_a = "s", --super
-		ecs_b = "t", --full
-		ecs_c = "u", --basic
-		ecs_d = "v", --lower
-
-		owner = "z"
-	}
-}
-
 local PLAYER = FindMetaTable("Player")
 
-local SpecialPlayer
-
-if SERVER then
-	SpecialPlayer = function(ply)
-		return game.SinglePlayer() or ply:IsListenServerHost()
-	end
-else
-	SpecialPlayer = function()
-		return game.SinglePlayer()
-	end
+function PLAYER:IsImmune(ply)
+	return IsValid(ply) and ply:IsPlayer() and uac.role.IsImmune(ply:GetRole(), self:GetRole())
 end
 
-function PLAYER:HasUserFlag(flag)
-	if SpecialPlayer(self) then
-		return true
-	end
-
-	if flag == nil then
-		return false
-	end
-
-	if flag == "" then
-		return true
-	end
-
-	if string.find(self:GetUserFlags(), flag, 1, true) then
-		return true
-	end
-
-	return false
+function PLAYER:GetPermissions()
+	return uac.role.GetPermissions(self:GetRole())
 end
 
-function PLAYER:GetUserFlags()
-	return self:GetNWString("UserFlags", "")
+function PLAYER:HasPermission(permission)
+	return uac.role.HasPermission(self:GetRole(), permission)
 end
 
-function PLAYER:IsAdmin()
-	return self:IsSuperAdmin() or self:IsUserGroup("admin") or SpecialPlayer(self)
+function PLAYER:GetRole()
+	return self:GetNW2String("UACRole", "user")
+end
+
+function PLAYER:SetRole(role)
+	return self:SetNW2String("UACRole", role)
 end
 
 function PLAYER:IsSuperAdmin()
-	return self:IsUserGroup("superadmin") or SpecialPlayer(self)
+	return self:HasPermission("superadmin")
 end
 
-function PLAYER:IsUserGroup(name)
-	return self:GetUserGroup() == name
-end
-
-function PLAYER:GetUserGroup()
-	return self:GetNWString("UserGroup", "")
+function PLAYER:IsAdmin()
+	return self:IsSuperAdmin() or self:HasPermission("admin")
 end

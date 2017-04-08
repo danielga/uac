@@ -10,12 +10,14 @@ if SERVER then
 		end
 
 		net.Start("uac_lua")
-			net.WriteString(src)
-			net.WriteString(by)
-		if targets == nil or (type(targets) ~= "Player" and type(targets) ~= "CRecipientFilter" and type(targets) ~= "table") then
-			net.Broadcast()
-		else
+		net.WriteString(src)
+		net.WriteString(by)
+
+		local targets_type = type(targets)
+		if targets_type == "table" or targets_type == "Player" or targets_type == "CRecipientFilter" then
 			net.Send(targets)
+		else
+			net.Broadcast()
 		end
 	end
 
@@ -28,7 +30,7 @@ if SERVER then
 else
 	function uac.lua.RunOnServer(src)
 		net.Start("uac_lua")
-			net.WriteString(src)
+		net.WriteString(src)
 		net.SendToServer()
 	end
 

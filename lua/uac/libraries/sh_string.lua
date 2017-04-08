@@ -39,11 +39,11 @@ function uac.string.DamerauLevenshtein(s, t, lim)
 		return lim
 	end
 
-	if type(s) == "string" then
+	if isstring(s) then
 		s = {string_byte(s, 1, s_len)}
 	end
 
-	if type(t) == "string" then
+	if isstring(t) then
 		t = {string_byte(t, 1, t_len)}
 	end
 
@@ -103,13 +103,53 @@ function uac.string.Format(text, ...)
 end
 
 function uac.string.IsSteamIDValid(steamid)
-	return type(steamid) == "string" and string_find(steamid, "^STEAM_%d:%d:%d+$") ~= nil
+	return isstring(steamid) and string_find(steamid, "^STEAM_%d:%d:%d+$") ~= nil
 end
 
 function uac.string.IsSteamID64Valid(steamid64)
-	return type(steamid64) == "string" and string_find(steamid64, "^%d+$") ~= nil
+	return isstring(steamid64) and #steamid64 == 17 and string_find(steamid64, "^7656119%d+$") ~= nil
 end
 
 function uac.string.IsIPValid(ip)
-	return type(ip) == "string" and string_find(ip, "^%d+.%d+.%d+.%d+$") ~= nil
+	return isstring(ip) and string_find(ip, "^%d+.%d+.%d+.%d+$") ~= nil
+end
+
+function uac.string.EncodeULEB128(values, ...)
+	local bytes = ""
+
+	local is_table = istable(values)
+	local size = is_table and #values or select("#", values, ...)
+	for i = 1, size do
+		local value = is_table and values[i] or select(i, values, ...)
+
+		repeat
+			local byte = bit.band(value, 0x7F)
+			value = bit.rshift(value, 7)
+			bytes = bytes .. string.char(value == 0 and byte or bit.bor(byte, 0x80))
+		until value == 0
+	end
+
+	return bytes
+end
+
+function uac.string.DecodeULEB128(bytes)
+	local offset = 1
+	local values = {}
+
+	while offset <= #bytes do
+		local value = 0
+		local byte = 0
+		local shift = 0
+
+		repeat
+			byte = string.byte(bytes, offset)
+			value = bit.bor(value, bit.lshift(bit.band(byte, 0x7F), shift))
+			offset = offset + 1
+			shift = shift + 7
+		until bit.band(byte, 0x80) == 0 or offset > #bytes
+
+		table.insert(values, value)
+	end
+
+	return values
 end

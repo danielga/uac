@@ -1,13 +1,20 @@
-PLUGIN.Name = "Strip weapons"
+PLUGIN.Name = "Weapon stripping"
 PLUGIN.Description = "Adds a command to strip players of weapons."
 PLUGIN.Author = "MetaMan"
 
-function PLUGIN:StripWeapons(ply, target)
+PLUGIN:AddPermission("strip", "Allows users to strip players of their weapons")
+
+function PLUGIN:StripWeapons(ply, target, weapon)
 	if target:Alive() then
-		target:StripWeapons()
+		if weapon ~= nil then
+			target:StripWeapon(weapon)
+		else
+			target:StripWeapons()
+		end
 	end
 end
 PLUGIN:AddCommand("strip", PLUGIN.StripWeapons)
-	:SetAccess(uac.auth.access.slay)
-	:SetDescription("Strips a player of their weapons")
+	:SetPermission("strip")
+	:SetDescription("Strips a player of their weapon(s)")
 	:AddParameter(uac.command.player)
+	:AddParameter(uac.command.string(uac.command.optional))

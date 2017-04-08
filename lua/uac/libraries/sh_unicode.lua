@@ -212,6 +212,7 @@ end
 
 local Decompose = uac.unicode.Decompose
 function uac.unicode.Similar(left, right)
+	local map, invmap
 	left, map, invmap = Decompose(left)
 	right = Decompose(right)
 

@@ -5,12 +5,20 @@ util.AddNetworkString("uac_chat_prefixes")
 
 local PLAYER = FindMetaTable("Player")
 
+function PLAYER:IsMuted()
+	return self:GetUACTable().muted
+end
+
 function PLAYER:Mute(boolean)
-	self:UACGetTable().muted = boolean
+	self:GetUACTable().muted = boolean
+end
+
+function PLAYER:IsGagged()
+	return self:GetUACTable().gagged
 end
 
 function PLAYER:Gag(boolean)
-	self:UACGetTable().gagged = boolean
+	self:GetUACTable().gagged = boolean
 end
 
 function PLAYER:ChatText(...)
@@ -21,15 +29,14 @@ function PLAYER:ChatText(...)
 	net.WriteUInt(size, 8)
 	for i = 1, size do
 		local val = select(i, ...)
-		local valtype = type(val)
-		if valtype == "table" then
-			net.WriteBit(true)
+		if istable(val) and isnumber(val.r) and isnumber(val.g) and isnumber(val.b) and isnumber(val.a) then
+			net.WriteBool(true)
 			net.WriteUInt(val.r, 8)
 			net.WriteUInt(val.g, 8)
 			net.WriteUInt(val.b, 8)
 			net.WriteUInt(val.a, 8)
 		else
-			net.WriteBit(false)
+			net.WriteBool(false)
 			net.WriteString(tostring(val))
 		end
 	end
@@ -38,7 +45,7 @@ function PLAYER:ChatText(...)
 end
 
 hook.Add("PlayerSay", "uac.chat.PlayerSay", function(ply, text, global)
-	if ply:UACGetTable().gagged then
+	if ply:GetUACTable().gagged then
 		return ""
 	end
 
@@ -51,7 +58,7 @@ hook.Add("PlayerSay", "uac.chat.PlayerSay", function(ply, text, global)
 end)
 
 hook.Add("PlayerCanHearPlayersVoice", "uac.chat.MuteVoice", function(listener, talker)
-	if talker:UACGetTable().muted then
+	if talker:GetUACTable().muted then
 		return false, false
 	end
 end)

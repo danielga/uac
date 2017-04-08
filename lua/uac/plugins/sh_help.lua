@@ -15,7 +15,6 @@ function PLUGIN:Help(ply, cmd)
 	end
 end
 PLUGIN:AddCommand("help", PLUGIN.Help)
-	:SetState("shared")
-	:SetAccess(uac.auth.access.all)
+	:SetState("self")
 	:SetDescription("Prints a list of commands or help specific to a command")
 	:AddParameter(uac.command.string(uac.command.optional))

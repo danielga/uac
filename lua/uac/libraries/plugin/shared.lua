@@ -1,122 +1,15 @@
+AddCSLuaFile()
+AddCSLuaFile("plugin.lua")
+
 uac.plugin = uac.plugin or {
 	list = {}
 }
 
 local plugin_list = uac.plugin.list
-
-local PLUGIN = {}
-PLUGIN.__index = PLUGIN
-
-function PLUGIN:GetCommands()
-	return self.commands
-end
-
-function PLUGIN:AddCommand(name, func)
-	local command = uac.command.Add(name, function(...)
-		return func(self, ...)
-	end)
-
-	local commands = self:GetCommands()
-	commands[name] = {
-		enabled = true,
-		command = command
-	}
-
-	return command
-end
-
-function PLUGIN:RemoveCommand(name)
-	local commands = self:GetCommands()
-	if not commands[name] then
-		return
-	end
-
-	commands[name] = nil
-	uac.command.Remove(name)
-end
-
-function PLUGIN:EnableCommands()
-	for name, data in pairs(self:GetCommands()) do
-		if not data.enabled then
-			data.enabled = false
-			uac.command.Add(name, data.command)
-		end
-	end
-end
-
-function PLUGIN:DisableCommands()
-	for name, data in pairs(self:GetCommands()) do
-		if data.enabled then
-			data.enabled = false
-			uac.command.Remove(name)
-		end
-	end
-end
-
-function PLUGIN:GetHooks()
-	return self.hooks
-end
-
-function PLUGIN:AddHook(name, unique, func)
-	local hooks = self:GetHooks()
-	if not hooks[name] then
-		hooks[name] = {}
-	end
-
-	local callback = function(...)
-		return func(self, ...)
-	end
-
-	hooks[name][unique] = {
-		enabled = true,
-		callback = callback
-	}
-
-	hook.Add(name, unique, callback)
-end
-
-function PLUGIN:RemoveHook(name, unique)
-	local hooks = self:GetHooks()
-	if not hooks[name] or not hooks[name][unique] then
-		return
-	end
-
-	hooks[name][unique] = nil
-	hook.Remove(name, unique)
-end
-
-function PLUGIN:EnableHooks()
-	for name, hooks in pairs(self:GetHooks()) do
-		for unique, data in pairs(hooks) do
-			if not data.enabled then
-				data.enabled = false
-				hook.Add(name, unique, data.callback)
-			end
-		end
-	end
-end
-
-function PLUGIN:DisableHooks()
-	for name, hooks in pairs(self:GetHooks()) do
-		for unique, data in pairs(hooks) do
-			if data.enabled then
-				data.enabled = false
-				hook.Remove(name, unique)
-			end
-		end
-	end
-end
-
-function uac.plugin.GetList()
-	return plugin_list
-end
-
-function uac.plugin.Get(name)
-	return plugin_list[name]
-end
+local PLUGIN = include("plugin.lua")
 
 function uac.plugin.Include(name)
-	if name then
+	if name ~= nil then
 		local loaded = false
 		local plugin = setmetatable({
 			enabled = true,
@@ -210,20 +103,20 @@ hook.Add("Initialize", "uac.plugin.Include", uac.plugin.Include)
 
 function uac.plugin.Load(name, reloaded)
 	local plugin = plugin_list[name]
-	if not plugin or plugin.enabled then
+	if plugin == nil or plugin.enabled then
 		return false
 	end
 
 	reloaded = reloaded or false
-	if plugin.Load and plugin.Load(reloaded) then
-		plugin.enabled = true
-		return true
+	if plugin.Load ~= nil and not plugin:Load(reloaded) then
+		return false
 	end
 
+	plugin.enabled = true
 	plugin:EnableCommands()
 	plugin:EnableHooks()
 
-	return false
+	return true
 end
 
 function uac.plugin.Reload(name)
@@ -236,18 +129,18 @@ end
 
 function uac.plugin.Unload(name, reloading)
 	local plugin = plugin_list[name]
-	if not plugin or not plugin.Enabled then
+	if plugin == nil or not plugin.enabled then
+		return false
+	end
+
+	reloading = reloading or false
+	if (plugin.CanUnload ~= nil and not plugin:CanUnload(reloading)) or
+		(plugin.Unload ~= nil and not plugin:Unload(reloading)) then
 		return false
 	end
 
 	plugin:DisableCommands()
 	plugin:DisableHooks()
-
-	reloading = reloading or false
-	if (plugin.CanUnload and not plugin:CanUnload(reloading)) or (plugin.Unload and not plugin:Unload(reloading)) then
-		return false
-	end
-
 	plugin.enabled = false
 
 	return true

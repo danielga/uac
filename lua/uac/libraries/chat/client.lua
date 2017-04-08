@@ -9,11 +9,17 @@ net.Receive("uac_chat_text", function(len)
 	local num = net.ReadUInt(8)
 	local data = {}
 	for i = 1, num do
-		table.insert(data, net.ReadBit() == 1 and Color(net.ReadUInt(8), net.ReadUInt(8), net.ReadUInt(8), net.ReadUInt(8)) or net.ReadString())
+		table.insert(data, net.ReadBool() and Color(net.ReadUInt(8), net.ReadUInt(8), net.ReadUInt(8), net.ReadUInt(8)) or net.ReadString())
 	end
 
 	chat.AddText(unpack(data))
 end)
+
+local PLAYER = FindMetaTable("Player")
+
+function PLAYER:ChatText(...)
+	chat.AddText(...)
+end
 
 local boxcolor = Color(120, 120, 120, 120)
 local autocomplete

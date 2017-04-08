@@ -1,3 +1,5 @@
+local rawget = rawget
+
 uac.data.tiny = {}
 uac.data.small = {}
 uac.data.medium = {}
@@ -6,70 +8,65 @@ uac.data.big = {}
 
 uac.data.unsigned = {}
 
-local function SetupParameter(parameter, type, types, ...)
-	local isint = type == "integer"
-	local argcount = select("#", ...)
-	for i = 1, argcount do
-		local arg = select(i, ...)
-		if types ~= nil and types[arg] ~= nil then
-			parameter.type = types[arg]
-		elseif isint and arg == uac.data.unsigned then
-			parameter.unsigned = true
-		elseif parameter:Check(arg) then
-			parameter.default = isint and math.floor(arg) or arg
-		else
-			error("bad type for default " .. type .. " value")
-		end
+local BOOLEAN = {}
+local BOOLEAN_INDEX = {}
+
+function BOOLEAN:__index(key)
+	local metafunction = BOOLEAN_INDEX[key]
+	if metafunction ~= nil then
+		return metafunction
 	end
 
-	if isint and parameter.unsigned then
-		parameter.type = "UNSIGNED " .. parameter.type
+	local selfdata = rawget(self, key)
+	if selfdata ~= nil then
+		return selfdata
 	end
 
-	return parameter
+	return BOOLEAN_INDEX.GetRow(self, key)
 end
 
-local BOOLEAN = {}
-BOOLEAN.__index = BOOLEAN
+function BOOLEAN:__newindex(key, value)
+	BOOLEAN_INDEX.SetRow(self, key, value)
+end
 
-function BOOLEAN:Type()
+function BOOLEAN_INDEX:GetType()
 	return "boolean"
 end
 
-function BOOLEAN:SQLType()
+function BOOLEAN_INDEX:GetSQLType()
 	return "BOOLEAN"
 end
 
-function BOOLEAN:CanIndex()
+function BOOLEAN_INDEX:CanIndex()
 	return false
 end
 
-function BOOLEAN:Check(value)
-	return type(value) == "boolean"
+function BOOLEAN_INDEX:CheckType(value)
+	return isbool(value)
 end
 
-function BOOLEAN:IsOptional()
+function BOOLEAN_INDEX:IsOptional()
 	return self.default ~= nil
 end
 
-function BOOLEAN:Name()
+function BOOLEAN_INDEX:GetName()
 	return self.name
 end
 
-function BOOLEAN:Default()
+function BOOLEAN_INDEX:GetDefault()
 	return self.default
 end
 
-function BOOLEAN:Get(row)
+function BOOLEAN_INDEX:GetRow(row)
 	if self.rows[row] == nil and self:IsOptional() then
-		return self:Default()
+		return self:GetDefault()
 	end
 
 	return self.rows[row]
 end
 
-function BOOLEAN:Set(row, value)
-	if value ~= nil and not self:Check(value) then
+function BOOLEAN_INDEX:SetRow(row, value)
+	if value ~= nil and not self:CheckType(value) then
 		return false
 	end
 
@@ -77,60 +74,88 @@ function BOOLEAN:Set(row, value)
 	return true
 end
 
-function BOOLEAN:Translate(row)
-	return self:Get(row) and "TRUE" or "FALSE"
+function BOOLEAN_INDEX:Translate(row)
+	return self:GetRow(row) and "TRUE" or "FALSE"
 end
 
 function uac.data.boolean(name, ...)
-	local parameter = setmetatable({
+	local parameter = {
 		name = name,
 		rows = {}
-	}, BOOLEAN)
+	}
 
-	return SetupParameter(parameter, "boolean", nil, ...)
+	local argcount = select("#", ...)
+	for i = 1, argcount do
+		local arg = select(i, ...)
+		if isbool(arg) then
+			parameter.default = arg
+		else
+			error("bad type for default boolean value")
+		end
+	end
+
+	return setmetatable(parameter, BOOLEAN)
 end
 
 local NUMBER = {}
-NUMBER.__index = NUMBER
+local NUMBER_INDEX = {}
 
-function NUMBER:Type()
+function NUMBER:__index(key)
+	local metafunction = NUMBER_INDEX[key]
+	if metafunction ~= nil then
+		return metafunction
+	end
+
+	local selfdata = rawget(self, key)
+	if selfdata ~= nil then
+		return selfdata
+	end
+
+	return NUMBER_INDEX.GetRow(self, key)
+end
+
+function NUMBER:__newindex(key, value)
+	NUMBER_INDEX.SetRow(self, key, value)
+end
+
+function NUMBER_INDEX:GetType()
 	return "number"
 end
 
-function NUMBER:SQLType()
+function NUMBER_INDEX:GetSQLType()
 	return self.type
 end
 
-function NUMBER:CanIndex()
+function NUMBER_INDEX:CanIndex()
 	return true
 end
 
-function NUMBER:Check(value)
-	return type(value) == "number"
+function NUMBER_INDEX:CheckType(value)
+	return isnumber(value)
 end
 
-function NUMBER:IsOptional()
+function NUMBER_INDEX:IsOptional()
 	return self.default ~= nil
 end
 
-function NUMBER:Name()
+function NUMBER_INDEX:GetName()
 	return self.name
 end
 
-function NUMBER:Default()
+function NUMBER_INDEX:GetDefault()
 	return self.default
 end
 
-function NUMBER:Get(row)
+function NUMBER_INDEX:GetRow(row)
 	if self.rows[row] == nil and self:IsOptional() then
-		return self:Default()
+		return self:GetDefault()
 	end
 
 	return self.rows[row]
 end
 
-function NUMBER:Set(row, value)
-	if value ~= nil and not self:Check(value) then
+function NUMBER_INDEX:SetRow(row, value)
+	if value ~= nil and not self:CheckType(value) then
 		return false
 	end
 
@@ -138,7 +163,7 @@ function NUMBER:Set(row, value)
 	return true
 end
 
-NUMBER.Translate = NUMBER.Get
+NUMBER_INDEX.Translate = NUMBER_INDEX.GetRow
 
 local NUMBER_TYPES = {
 	[uac.data.tiny] = "FLOAT",
@@ -149,14 +174,26 @@ local NUMBER_TYPES = {
 }
 
 function uac.data.number(name, ...)
-	local parameter = setmetatable({
+	local parameter = {
 		name = name,
 		type = "FLOAT",
 		integer = false,
 		rows = {}
-	}, NUMBER)
+	}
 
-	return SetupParameter(parameter, "number", NUMBER_TYPES, ...)
+	local argcount = select("#", ...)
+	for i = 1, argcount do
+		local arg = select(i, ...)
+		if NUMBER_TYPES[arg] ~= nil then
+			parameter.type = NUMBER_TYPES[arg]
+		elseif isnumber(arg) then
+			parameter.default = arg
+		else
+			error("bad type for default number value")
+		end
+	end
+
+	return setmetatable(parameter, NUMBER)
 end
 
 local INTEGER_TYPES = {
@@ -168,58 +205,94 @@ local INTEGER_TYPES = {
 }
 
 function uac.data.integer(name, ...)
-	local parameter = setmetatable({
+	local parameter = {
 		name = name,
 		type = "INT",
 		integer = true,
 		unsigned = false,
 		rows = {}
-	}, NUMBER)
+	}
 
-	return SetupParameter(parameter, "integer", INTEGER_TYPES, ...)
+	local argcount = select("#", ...)
+	for i = 1, argcount do
+		local arg = select(i, ...)
+		if INTEGER_TYPES[arg] ~= nil then
+			parameter.type = INTEGER_TYPES[arg]
+		elseif arg == uac.data.unsigned then
+			parameter.unsigned = true
+		elseif isnumber(arg) then
+			parameter.default = math.floor(arg)
+		else
+			error("bad type for default integer value")
+		end
+	end
+
+	if parameter.unsigned then
+		parameter.type = "UNSIGNED " .. parameter.type
+	end
+
+	return setmetatable(parameter, NUMBER)
 end
 
 local STRING = {}
-STRING.__index = STRING
+local STRING_INDEX = {}
 
-function STRING:Type()
+function STRING:__index(key)
+	local metafunction = STRING_INDEX[key]
+	if metafunction ~= nil then
+		return metafunction
+	end
+
+	local selfdata = rawget(self, key)
+	if selfdata ~= nil then
+		return selfdata
+	end
+
+	return STRING_INDEX.GetRow(self, key)
+end
+
+function STRING:__newindex(key, value)
+	STRING_INDEX.SetRow(self, key, value)
+end
+
+function STRING_INDEX:GetType()
 	return "string"
 end
 
-function STRING:SQLType()
+function STRING_INDEX:GetSQLType()
 	return self.type
 end
 
-function STRING:CanIndex()
-	return true
+function STRING_INDEX:CanIndex()
+	return self.canindex
 end
 
-function STRING:Check(value)
-	return type(value) == "string"
+function STRING_INDEX:CheckType(value)
+	return isstring(value)
 end
 
-function STRING:IsOptional()
+function STRING_INDEX:IsOptional()
 	return self.default ~= nil
 end
 
-function STRING:Name()
+function STRING_INDEX:GetName()
 	return self.name
 end
 
-function STRING:Default()
+function STRING_INDEX:GetDefault()
 	return self.default
 end
 
-function STRING:Get(row)
+function STRING_INDEX:GetRow(row)
 	if self.rows[row] == nil and self:IsOptional() then
-		return self:Default()
+		return self:GetDefault()
 	end
 
 	return self.rows[row]
 end
 
-function STRING:Set(row, value)
-	if value ~= nil and not self:Check(value) then
+function STRING_INDEX:SetRow(row, value)
+	if value ~= nil and not self:CheckType(value) then
 		return false
 	end
 
@@ -227,7 +300,7 @@ function STRING:Set(row, value)
 	return true
 end
 
-STRING.Translate = STRING.Get
+STRING_INDEX.Translate = STRING_INDEX.GetRow
 
 local STRING_TYPES = {
 	[uac.data.tiny] = "TINYTEXT",
@@ -238,64 +311,27 @@ local STRING_TYPES = {
 }
 
 function uac.data.string(name, ...)
-	local parameter = setmetatable({
+	local parameter = {
 		name = name,
+		canindex = true,
 		type = "TEXT",
 		rows = {}
-	}, STRING)
+	}
 
-	return SetupParameter(parameter, "string", STRING_TYPES, ...)
-end
-
-local BLOB = {}
-BLOB.__index = BLOB
-
-function BLOB:Type()
-	return "string"
-end
-
-function BLOB:SQLType()
-	return self.type
-end
-
-function BLOB:CanIndex()
-	return false
-end
-
-function BLOB:Check(value)
-	return type(value) == "string"
-end
-
-function BLOB:IsOptional()
-	return self.default ~= nil
-end
-
-function BLOB:Name()
-	return self.name
-end
-
-function BLOB:Default()
-	return self.default
-end
-
-function BLOB:Get(row)
-	if self.rows[row] == nil and self:IsOptional() then
-		return self:Default()
+	local argcount = select("#", ...)
+	for i = 1, argcount do
+		local arg = select(i, ...)
+		if STRING_TYPES[arg] ~= nil then
+			parameter.type = STRING_TYPES[arg]
+		elseif isstring(arg) then
+			parameter.default = arg
+		else
+			error("bad type for default string value")
+		end
 	end
 
-	return self.rows[row]
+	return setmetatable(parameter, STRING)
 end
-
-function BLOB:Set(row, value)
-	if value ~= nil and not self:Check(value) then
-		return false
-	end
-
-	self.rows[row] = value
-	return true
-end
-
-BLOB.Translate = BLOB.Get
 
 local BLOB_TYPES = {
 	[uac.data.tiny] = "BLOB",
@@ -306,11 +342,30 @@ local BLOB_TYPES = {
 }
 
 function uac.data.blob(name, ...)
-	local parameter = setmetatable({
+	local parameter = {
 		name = name,
+		canindex = false,
 		type = "BLOB",
 		rows = {}
-	}, BLOB)
+	}
 
-	return SetupParameter(parameter, "blob", BLOB_TYPES, ...)
+	local argcount = select("#", ...)
+	for i = 1, argcount do
+		local arg = select(i, ...)
+		if BLOB_TYPES[arg] ~= nil then
+			parameter.type = BLOB_TYPES[arg]
+		elseif isstring(arg) then
+			parameter.default = arg
+		else
+			error("bad type for default blob value")
+		end
+	end
+
+	return setmetatable(parameter, STRING)
 end
+
+return {
+	[BOOLEAN] = true,
+	[NUMBER] = true,
+	[STRING] = true
+}

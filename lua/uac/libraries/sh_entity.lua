@@ -1,6 +1,6 @@
 local ENTITY = FindMetaTable("Entity")
 
-function ENTITY:UACGetTable()
+function ENTITY:GetUACTable()
 	if not self.__uac then
 		self.__uac = {}
 	end
