@@ -18,7 +18,7 @@ hook.Add("PlayerInitialSpawn", "uac.role.SynchronizeList", function(ply)
 	for i = 1, list_size do
 		local role = role_list[i]
 		net.WriteString(role.name)
-		net.WriteString(uac.string.EncodeULEB128(role.RawPermissions))
+		net.WriteString(uac.string.EncodeULEB128(role.rawpermissions))
 	end
 	
 	net.Send(ply)
