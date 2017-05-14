@@ -19,6 +19,10 @@ local there = Vector(%g, %g, %g)
 %s
 ]]
 function PLUGIN:sv_lua(ply, code)
+	if not IsValid(ply) then
+		return
+	end
+
 	local plypos = ply:GetPos()
 	local trace = util.GetPlayerTrace(ply)
 	local traceRes = util.TraceLine(trace)
@@ -41,6 +45,10 @@ PLUGIN:AddCommand("l", PLUGIN.sv_lua)
 	:AddParameter(uac.command.string)
 
 function PLUGIN:sh_lua(ply, code)
+	if not IsValid(ply) then
+		return
+	end
+
 	local plypos = ply:GetPos()
 	local trace = util.GetPlayerTrace(ply)
 	local traceRes = util.TraceLine(trace)
@@ -63,6 +71,10 @@ PLUGIN:AddCommand("ls", PLUGIN.sh_lua)
 	:AddParameter(uac.command.string)
 
 function PLUGIN:cls_lua(ply, code)
+	if not IsValid(ply) then
+		return
+	end
+
 	local plypos = ply:GetPos()
 	local trace = util.GetPlayerTrace(ply)
 	local traceRes = util.TraceLine(trace)
@@ -85,6 +97,10 @@ PLUGIN:AddCommand("lcs", PLUGIN.cls_lua)
 	:AddParameter(uac.command.string)
 
 function PLUGIN:cl_lua(ply, targets, code)
+	if not IsValid(ply) then
+		return
+	end
+
 	local plypos = ply:GetPos()
 	local trace = util.GetPlayerTrace(ply)
 	local traceRes = util.TraceLine(trace)
@@ -110,6 +126,10 @@ PLUGIN:AddCommand("lc", PLUGIN.cl_lua)
 	:AddParameter(uac.command.string)
 
 function PLUGIN:me_lua(ply, code)
+	if not IsValid(ply) then
+		return
+	end
+
 	local plypos = ply:GetPos()
 	local trace = util.GetPlayerTrace(ply)
 	local traceRes = util.TraceLine(trace)

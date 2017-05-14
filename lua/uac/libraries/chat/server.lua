@@ -3,7 +3,32 @@ AddCSLuaFile("client.lua")
 util.AddNetworkString("uac_chat_text")
 util.AddNetworkString("uac_chat_prefixes")
 
+local ENTITY = FindMetaTable("Entity")
+
+function ENTITY:IsMuted()
+	return false
+end
+
+function ENTITY:Mute(boolean)
+end
+
+function ENTITY:IsGagged()
+	return false
+end
+
+function ENTITY:Gag(boolean)
+end
+
+function ENTITY:ChatText(...)
+	if self == NULL then
+		MsgC(...)
+		MsgN()
+	end
+end
+
 local PLAYER = FindMetaTable("Player")
+
+if SERVER then
 
 function PLAYER:IsMuted()
 	return self:GetUACTable().muted
@@ -11,6 +36,12 @@ end
 
 function PLAYER:Mute(boolean)
 	self:GetUACTable().muted = boolean
+end
+
+else
+
+PLAYER.Mute = PLAYER.SetMuted
+
 end
 
 function PLAYER:IsGagged()
@@ -45,7 +76,7 @@ function PLAYER:ChatText(...)
 end
 
 hook.Add("PlayerSay", "uac.chat.PlayerSay", function(ply, text, global)
-	if ply:GetUACTable().gagged then
+	if ply:IsGagged() then
 		return ""
 	end
 
@@ -58,7 +89,7 @@ hook.Add("PlayerSay", "uac.chat.PlayerSay", function(ply, text, global)
 end)
 
 hook.Add("PlayerCanHearPlayersVoice", "uac.chat.MuteVoice", function(listener, talker)
-	if talker:GetUACTable().muted then
+	if talker:IsMuted() then
 		return false, false
 	end
 end)

@@ -5,6 +5,10 @@ PLUGIN.Author = "MetaMan"
 PLUGIN:AddPermission("vehicle", "Allows users to force others to enter/exit vehicles")
 
 function PLUGIN:EnterVehicle(ply, target)
+	if not IsValid(ply) then
+		return
+	end
+
 	local vehicle = ply:GetEyeTrace().Entity
 	if not IsValid(vehicle) then
 		return

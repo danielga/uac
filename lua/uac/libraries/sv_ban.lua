@@ -78,28 +78,28 @@ function uac.ban.IsBanned(ident, callback, userdata)
 end
 
 function uac.ban.Add(ident, time, reason, issuer, name)
-	local userdata = {Name = name or "", Length = time, Reason = reason, AdminSteamID = "STEAM_ID_SERVER", AdminIP = serverip}
+	local userdata = {name = name or "", length = time, reason = reason, adminsteamid = "STEAM_ID_SERVER", adminip = serverip}
 	if IsValid(ident) then
-		userdata.SteamID = ident:SteamID()
-		userdata.IP = ident:IPAddress()
-		userdata.Name = ident:Name()
-		userdata.Player = ident
+		userdata.steamid = ident:SteamID()
+		userdata.ip = ident:IPAddress()
+		userdata.name = ident:Name()
+		userdata.player = ident
 
 		local uactable = ident:GetUACTable()
 		uactable.lastbanupdate = CurTime()
 		uactable.banned = true
 	elseif uac.string.IsSteamIDValid(ident) then
-		userdata.SteamID = ident
+		userdata.steamid = ident
 	elseif uac.string.IsIPValid(ident) then
-		userdata.IP = ident
+		userdata.ip = ident
 	else
 		return false
 	end
 
 	if IsValid(issuer) then
-		userdata.Admin = issuer
-		userdata.AdminSteamID = issuer:SteamID()
-		userdata.AdminIP = issuer:IPAddress()
+		userdata.admin = issuer
+		userdata.adminsteamid = issuer:SteamID()
+		userdata.adminip = issuer:IPAddress()
 	end
 
 	return uac.ban.IsBanned(ident, AddBan, userdata)
@@ -128,26 +128,37 @@ function uac.ban.Remove(ident, reason, issuer)
 	return uac.ban.IsBanned(ident, RemoveBan, userdata)
 end
 
-local META = FindMetaTable("Player")
-if META then
-	function META:Ban(minutes, reason, issuer) -- issuer added to the end to allow compatibility with vanilla GMod
-		return uac.ban.Add(self, minutes, reason, issuer)
+local ENTITY = FindMetaTable("Entity")
+
+function ENTITY:Ban(minutes, reason, issuer)
+end
+
+function ENTITY:Unban(reason, issuer)
+end
+
+function ENTITY:IsBanned()
+	return false
+end
+
+local PLAYER = FindMetaTable("Player")
+
+function PLAYER:Ban(minutes, reason, issuer) -- issuer added to the end to allow compatibility with vanilla GMod
+	return uac.ban.Add(self, minutes, reason, issuer)
+end
+
+function PLAYER:Unban(reason, issuer) -- in case you want a "let banned players come in with restrictions"
+	return uac.ban.Remove(self, reason, issuer)
+end
+
+function PLAYER:IsBanned() -- in case you want a "let banned players come in with restrictions"
+	local uactable = self:GetUACTable()
+	local curtime = CurTime() -- only update the cached value each 15 seconds if IsBanned is called frequently
+	if curtime - (uactable.lastbanupdate or 0) >= 15 then
+		uactable.lastbanupdate = curtime
+		uac.ban.IsBanned(self, UpdateStatus, self)
 	end
 
-	function META:Unban(reason, issuer) -- in case you want a "let banned players come in with restrictions"
-		return uac.ban.Remove(self, reason, issuer)
-	end
-
-	function META:IsBanned() -- in case you want a "let banned players come in with restrictions"
-		local uactable = self:GetUACTable()
-		local curtime = CurTime() -- only update the cached value each 15 seconds if IsBanned is called frequently
-		if curtime - (uactable.lastbanupdate or 0) >= 15 then
-			uactable.lastbanupdate = curtime
-			uac.ban.IsBanned(self, UpdateStatus, self)
-		end
-
-		return uactable.banned or false -- returns cached value or false but tries to update it when this function is called
-	end
+	return uactable.banned or false -- returns cached value or false but tries to update it when this function is called
 end
 
 hook.Add("PlayerAuthed", "uac.bans.CheckPlayerStatus", function(ply, steamid, uniqueid)

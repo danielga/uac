@@ -1,3 +1,32 @@
+local ENTITY = FindMetaTable("Entity")
+
+function ENTITY:IsImmune(ply)
+	return self == NULL
+end
+
+function ENTITY:GetPermissions()
+	return uac.role.GetPermissions("superadmin")
+end
+
+function ENTITY:HasPermission(permission)
+	return self == NULL
+end
+
+function ENTITY:GetRole()
+	return self == NULL and "superadmin" or nil
+end
+
+function ENTITY:SetRole(role)
+end
+
+function ENTITY:IsSuperAdmin()
+	return self == NULL
+end
+
+function ENTITY:IsAdmin()
+	return self == NULL
+end
+
 local PLAYER = FindMetaTable("Player")
 
 function PLAYER:IsImmune(ply)

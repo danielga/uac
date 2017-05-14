@@ -12,6 +12,10 @@ function PLUGIN:Noclip(ply, target)
 			target:SetMoveType(MOVETYPE_NOCLIP)
 		end
 	else
+		if not IsValid(ply) then
+			return
+		end
+		
 		if ply:GetMoveType() == MOVETYPE_NOCLIP then
 			ply:SetMoveType(MOVETYPE_WALK)
 		else

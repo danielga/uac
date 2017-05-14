@@ -152,11 +152,23 @@ end
 hook.Add("Initialize", "uac.role.Load", function()
 	uac.role.Add("superadmin", {
 		"superadmin",
+		"admin",
 		"cexec",
 		"lua",
 		"ban",
 		"role",
-		"rcon"
+		"rcon",
+		"teleport",
+		"vehicle",
+		"give",
+		"god",
+		"health",
+		"kick",
+		"map",
+		"noclip",
+		"respawn",
+		"slay",
+		"strip"
 	}, true, true)
 
 	uac.role.Add("admin", {

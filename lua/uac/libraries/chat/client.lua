@@ -15,10 +15,21 @@ net.Receive("uac_chat_text", function(len)
 	chat.AddText(unpack(data))
 end)
 
+local ENTITY = FindMetaTable("Entity")
+
+function ENTITY:ChatText(...)
+	if self == NULL then
+		MsgC(...)
+		MsgN()
+	end
+end
+
 local PLAYER = FindMetaTable("Player")
 
 function PLAYER:ChatText(...)
-	chat.AddText(...)
+	if self == LocalPlayer() then
+		chat.AddText(...)
+	end
 end
 
 local boxcolor = Color(120, 120, 120, 120)

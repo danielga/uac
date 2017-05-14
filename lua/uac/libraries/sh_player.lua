@@ -1,9 +1,13 @@
 uac.player = uac.player or {}
 
+local ENTITY = FindMetaTable("Entity")
 local PLAYER = FindMetaTable("Player")
 
 if SERVER then
 	util.AddNetworkString("uac_player_notify")
+
+	function ENTITY:Notify(message, type, length)
+	end
 
 	function PLAYER:Notify(message, type, length)
 		net.Start("uac_player_notify")
@@ -18,16 +22,29 @@ else
 		notification.AddLegacy(net.ReadString(), net.ReadUInt(8), net.ReadUInt(16))
 	end)
 
+	function ENTITY:Notify(message, type, length)
+	end
+
+	function ENTITY:IsListenServerHost()
+		return false
+	end
+
+	function PLAYER:Notify(message, type, length)
+		if self == LocalPlayer() then
+			notification.AddLegacy(message, type, length)
+		end
+	end
+
 	function PLAYER:IsListenServerHost()
 		return not uac.misc.IsDedicatedServer() and self:EntIndex() == 1
 	end
 end
 
-function PLAYER:IsGameHost()
-	return game.SinglePlayer() or self:IsListenServerHost()
+function ENTITY:IsGameHost()
+	return self == NULL
 end
 
-function PLAYER:FindFreeSpace(behind)
+function ENTITY:FindFreeSpace(behind)
 	local plypos = self:GetPos()
 	local plyang = self:EyeAngles()
 	local yaw =  math.floor(plyang.y / 45 + 0.5) * 45 --snap to 45 degree.
@@ -56,6 +73,10 @@ function PLAYER:FindFreeSpace(behind)
 			return Pos - Vector(0, 0, size.z / 2)
 		end
 	end
+end
+
+function PLAYER:IsGameHost()
+	return game.SinglePlayer() or self:IsListenServerHost()
 end
 
 function uac.player.GetPlayerFromSteamID(steamid)
@@ -115,7 +136,7 @@ function uac.player.GetTargets(executor, target, ignore_immunity, every_match)
 
 	local sort = false
 	local type
-	if target == "@this" then
+	if target == "@this" and IsValid(executor) then
 		type = "this"
 
 		local entity = executor:GetEyeTrace().Entity

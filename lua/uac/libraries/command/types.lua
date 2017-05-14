@@ -1,25 +1,25 @@
 uac.command.optional = {}
 
-local BOOLEAN = {}
-BOOLEAN.__index = BOOLEAN
+local BOOLEAN = {__index = {}}
+local BOOLEAN_INDEX = BOOLEAN.__index
 
-function BOOLEAN:Type()
+function BOOLEAN_INDEX:Type()
 	return "boolean"
 end
 
-function BOOLEAN:Check(val)
+function BOOLEAN_INDEX:Check(val)
 	return isbool(val)
 end
 
-function BOOLEAN:IsOptional()
+function BOOLEAN_INDEX:IsOptional()
 	return self.optional
 end
 
-function BOOLEAN:GetDefault()
+function BOOLEAN_INDEX:GetDefault()
 	return self.default
 end
 
-function BOOLEAN:Process(ply, arg)
+function BOOLEAN_INDEX:Process(ply, arg)
 	if arg == nil then
 		if not self:IsOptional() then
 			return nil, "no value"
@@ -35,7 +35,7 @@ function BOOLEAN:Process(ply, arg)
 	return arg == "true"
 end
 
-function BOOLEAN:AutoComplete(ply, arg)
+function BOOLEAN_INDEX:AutoComplete(ply, arg)
 	local autocomplete = {}
 	if arg ~= nil then
 		if string.lower("true", "^" .. arg, 1, true) then
@@ -48,7 +48,7 @@ function BOOLEAN:AutoComplete(ply, arg)
 	return autocomplete
 end
 
-function BOOLEAN:Usage()
+function BOOLEAN_INDEX:Usage()
 	if self:IsOptional() then
 		return "[true | false]"
 	end
@@ -72,14 +72,14 @@ function uac.command.boolean(default)
 	return parameter
 end
 
-local NUMBER = {}
-NUMBER.__index = NUMBER
+local NUMBER = {__index = {}}
+local NUMBER_INDEX = NUMBER.__index
 
-function NUMBER:Type()
+function NUMBER_INDEX:Type()
 	return "number"
 end
 
-function NUMBER:Check(val)
+function NUMBER_INDEX:Check(val)
 	if not isnumber(val) then
 		return false, "bad type"
 	end
@@ -91,15 +91,15 @@ function NUMBER:Check(val)
 	return true
 end
 
-function NUMBER:IsOptional()
+function NUMBER_INDEX:IsOptional()
 	return self.optional
 end
 
-function NUMBER:GetDefault()
+function NUMBER_INDEX:GetDefault()
 	return self.default
 end
 
-function NUMBER:Process(ply, arg)
+function NUMBER_INDEX:Process(ply, arg)
 	arg = tonumber(arg)
 	if arg == nil then
 		if not self:IsOptional() then
@@ -116,7 +116,7 @@ function NUMBER:Process(ply, arg)
 	return arg
 end
 
-function NUMBER:AutoComplete(ply, arg)
+function NUMBER_INDEX:AutoComplete(ply, arg)
 	local num = tonumber(arg)
 	if num == nil then
 		return {}
@@ -129,7 +129,7 @@ function NUMBER:AutoComplete(ply, arg)
 	return {tostring(num)}
 end
 
-function NUMBER:Usage()
+function NUMBER_INDEX:Usage()
 	if self:IsOptional() then
 		return "[number]"
 	end
@@ -167,26 +167,26 @@ function uac.command.number(left, right, default)
 	return parameter
 end
 
-local STRING = {}
-STRING.__index = STRING
+local STRING = {__index = {}}
+local STRING_INDEX = STRING.__index
 
-function STRING:Type()
+function STRING_INDEX:Type()
 	return "string"
 end
 
-function STRING:Check(val)
+function STRING_INDEX:Check(val)
 	return isstring(val)
 end
 
-function STRING:IsOptional()
+function STRING_INDEX:IsOptional()
 	return self.optional
 end
 
-function STRING:GetDefault()
+function STRING_INDEX:GetDefault()
 	return self.default
 end
 
-function STRING:Process(ply, arg)
+function STRING_INDEX:Process(ply, arg)
 	if arg == nil then
 		if not self:IsOptional() then
 			return nil, "no value"
@@ -198,11 +198,11 @@ function STRING:Process(ply, arg)
 	return arg
 end
 
-function STRING:AutoComplete(ply, arg)
+function STRING_INDEX:AutoComplete(ply, arg)
 	return {arg}
 end
 
-function STRING:Usage()
+function STRING_INDEX:Usage()
 	if self:IsOptional() then
 		return "[string]"
 	end
@@ -226,25 +226,25 @@ function uac.command.string(default)
 	return parameter
 end
 
-local PLAYER = {}
-PLAYER.__index = PLAYER
+local PLAYER = {__index = {}}
+local PLAYER_INDEX = PLAYER.__index
 
-function PLAYER:Type()
+function PLAYER_INDEX:Type()
 	return "Player"
 end
 
-function PLAYER:Check(val)
+function PLAYER_INDEX:Check(val)
 	return IsValid(val) and val:IsPlayer()
 end
 
-function PLAYER:IsOptional()
+function PLAYER_INDEX:IsOptional()
 	return self.optional
 end
 
-function PLAYER:GetDefault()
+function PLAYER_INDEX:GetDefault()
 end
 
-function PLAYER:Process(ply, arg)
+function PLAYER_INDEX:Process(ply, arg)
 	if arg == nil and not self:IsOptional() then
 		return nil, "no value"
 	end
@@ -257,7 +257,7 @@ function PLAYER:Process(ply, arg)
 	return target
 end
 
-function PLAYER:AutoComplete(ply, arg)
+function PLAYER_INDEX:AutoComplete(ply, arg)
 	local autocomplete, type = uac.player.GetTargets(ply, arg)
 	if #autocomplete == 0 and arg ~= nil and #arg == 0 then
 		autocomplete = player.GetAll()
@@ -271,7 +271,7 @@ function PLAYER:AutoComplete(ply, arg)
 	return autocomplete
 end
 
-function PLAYER:Usage()
+function PLAYER_INDEX:Usage()
 	if self:IsOptional() then
 		return "[@teamname | #userid | steamid | playername]"
 	end
@@ -285,25 +285,25 @@ function uac.command.player(optional)
 	return setmetatable({optional = isoptional}, PLAYER)
 end
 
-local PLAYERS = {}
-PLAYERS.__index = PLAYERS
+local PLAYERS = {__index = {}}
+local PLAYERS_INDEX = PLAYERS.__index
 
-function PLAYERS:Type()
+function PLAYERS_INDEX:Type()
 	return "Player"
 end
 
-function PLAYERS:Check(val)
+function PLAYERS_INDEX:Check(val)
 	return IsValid(val) and val:IsPlayer()
 end
 
-function PLAYERS:IsOptional()
+function PLAYERS_INDEX:IsOptional()
 	return self.optional
 end
 
-function PLAYERS:GetDefault()
+function PLAYERS_INDEX:GetDefault()
 end
 
-function PLAYERS:Process(ply, arg)
+function PLAYERS_INDEX:Process(ply, arg)
 	if arg == nil and not self:IsOptional() then
 		return nil, "no value"
 	end
@@ -316,7 +316,7 @@ function PLAYERS:Process(ply, arg)
 	return targets
 end
 
-function PLAYERS:AutoComplete(ply, arg)
+function PLAYERS_INDEX:AutoComplete(ply, arg)
 	local autocomplete, type = uac.player.GetTargets(ply, arg)
 	if #autocomplete == 0 and arg ~= nil and #arg == 0 then
 		autocomplete = player.GetAll()
@@ -330,7 +330,7 @@ function PLAYERS:AutoComplete(ply, arg)
 	return autocomplete
 end
 
-function PLAYERS:Usage()
+function PLAYERS_INDEX:Usage()
 	if self:IsOptional() then
 		return "[@teamname | #userid | steamid | playername]"
 	end

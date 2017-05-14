@@ -63,7 +63,7 @@ function uac.command.Run(ply, command, argstr)
 
 	local cmd = command_list[command]
 	if cmd ~= nil then
-		if ply:HasUserPermission(cmd.permission) then
+		if ply:HasPermission(cmd.permission) then
 			if CLIENT and cmd.state == "server" then
 				net.Start("uac_command_execute")
 				net.WriteString(command)

@@ -5,6 +5,10 @@ PLUGIN.Author = "MetaMan"
 PLUGIN:AddPermission("teleport", "Allows users to teleport to and bring others to them")
 
 function PLUGIN:Bring(ply, target)
+	if not IsValid(ply) then
+		return
+	end
+
 	if ply:Alive() then
 		if ply:InVehicle() then
 			ply:ExitVehicle()
@@ -23,6 +27,10 @@ PLUGIN:AddCommand("bring", PLUGIN.Bring)
 	:AddParameter(uac.command.player)
 
 function PLUGIN:Goto(ply, target)
+	if not IsValid(ply) then
+		return
+	end
+	
 	local pos = target:FindFreeSpace(true)
 	if pos then
 		ply:SetPos(pos)

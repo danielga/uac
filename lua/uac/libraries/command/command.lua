@@ -1,15 +1,15 @@
-local COMMAND = {}
-COMMAND.__index = COMMAND
+local COMMAND = {__index = {}}
+local COMMAND_INDEX = COMMAND.__index
 
-function COMMAND:GetParameters()
+function COMMAND_INDEX:GetParameters()
 	return self.parameters
 end
 
-function COMMAND:GetParameter(num)
+function COMMAND_INDEX:GetParameter(num)
 	return self.parameters[num]
 end
 
-function COMMAND:AddParameter(parameter)
+function COMMAND_INDEX:AddParameter(parameter)
 	if isfunction(parameter) then
 		parameter = parameter() -- check result
 
@@ -21,34 +21,34 @@ function COMMAND:AddParameter(parameter)
 	return self
 end
 
-function COMMAND:GetPermission()
+function COMMAND_INDEX:GetPermission()
 	return self.permission
 end
 
-function COMMAND:SetPermission(permission)
+function COMMAND_INDEX:SetPermission(permission)
 	self.permission = permission
 	return self
 end
 
-function COMMAND:GetDescription()
+function COMMAND_INDEX:GetDescription()
 	return self.description
 end
 
-function COMMAND:SetDescription(desc)
+function COMMAND_INDEX:SetDescription(desc)
 	self.description = desc
 	return self
 end
 
-function COMMAND:GetState()
+function COMMAND_INDEX:GetState()
 	return self.state
 end
 
-function COMMAND:SetState(state)
+function COMMAND_INDEX:SetState(state)
 	self.state = state
 	return self
 end
 
-function COMMAND:GetUsage()
+function COMMAND_INDEX:GetUsage()
 	local parameters = self.parameters
 	local numparams = #parameters
 	if numparams == 0 then
@@ -110,7 +110,7 @@ local function AutoCompleteBranch(tab, branches)
 	return autocomplete
 end
 
-function COMMAND:GetAutoComplete(ply, argstr)
+function COMMAND_INDEX:GetAutoComplete(ply, argstr)
 	local parameters = self.parameters
 	local splitter = GetSplitter(argstr)
 	local autocomplete = {}
@@ -131,7 +131,7 @@ function COMMAND:GetAutoComplete(ply, argstr)
 	return autocomplete
 end
 
-function COMMAND:Call(ply, argstr)
+function COMMAND_INDEX:Call(ply, argstr)
 	if (self.state == "client" and SERVER) or (self.state == "server" and CLIENT) then
 		return true
 	end
