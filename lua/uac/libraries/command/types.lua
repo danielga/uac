@@ -64,6 +64,7 @@ function uac.command.boolean(default)
 
 	parameter.optional = true
 	if default == uac.command.optional then
+		parameter.default = uac.command.optional
 		return parameter
 	end
 
@@ -153,6 +154,8 @@ function uac.command.number(left, right, default)
 				assert(good, err .. " for default value with min and max")
 
 				parameter.default = default
+			else
+				parameter.default = uac.command.optional
 			end
 		else
 			parameter.optional = true
@@ -160,6 +163,8 @@ function uac.command.number(left, right, default)
 			if left ~= uac.command.optional then
 				assert(parameter:Check(left), "bad type for default number value")
 				parameter.default = left
+			else
+				parameter.default = uac.command.optional
 			end
 		end
 	end
@@ -218,6 +223,7 @@ function uac.command.string(default)
 
 	parameter.optional = true
 	if default == uac.command.optional then
+		parameter.default = uac.command.optional
 		return parameter
 	end
 
@@ -282,7 +288,7 @@ end
 function uac.command.player(optional)
 	local isoptional = optional == uac.command.optional
 	assert(optional == nil or isoptional, "bad value for optional flag")
-	return setmetatable({optional = isoptional}, PLAYER)
+	return setmetatable({optional = isoptional, default = optional}, PLAYER)
 end
 
 local PLAYERS = {__index = {}}
@@ -341,5 +347,5 @@ end
 function uac.command.players(optional)
 	local isoptional = optional == uac.command.optional
 	assert(optional == nil or isoptional, "bad value for optional flag")
-	return setmetatable({optional = isoptional}, PLAYERS)
+	return setmetatable({optional = isoptional, default = optional}, PLAYERS)
 end

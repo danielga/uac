@@ -5,7 +5,7 @@ PLUGIN.Author = "MetaMan"
 PLUGIN:AddPermission("noclip", "Allows users to toggle noclip on players")
 
 function PLUGIN:Noclip(ply, target)
-	if target ~= nil then
+	if target ~= uac.command.optional then
 		if target:GetMoveType() == MOVETYPE_NOCLIP then
 			target:SetMoveType(MOVETYPE_WALK)
 		else

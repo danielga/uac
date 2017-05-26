@@ -4,7 +4,7 @@ PLUGIN.Author = "MetaMan"
 
 function PLUGIN:Help(ply, cmd)
 	for command, data in pairs(uac.command.GetList()) do
-		if cmd == nil or string.find(command, cmd, 1, true) then
+		if cmd == uac.command.optional or string.find(command, cmd, 1, true) then
 			local usage = data:GetUsage()
 			if usage == nil then
 				print(string.format("%-20s%s", command, data:GetDescription() or ""))

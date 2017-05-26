@@ -5,6 +5,10 @@ PLUGIN.Author = "MetaMan"
 PLUGIN:AddPermission("respawn", "Allows users to (re)spawn players")
 
 function PLUGIN:RespawnPlayer(ply, target)
+	if target == uac.command.optional then
+		target = ply
+	end
+
 	local pos = target:GetPos()
 	local ang = target:EyeAngles()
 	target:Spawn()
@@ -17,9 +21,13 @@ PLUGIN:AddCommand("respawn", PLUGIN.RespawnPlayer)
 	:AddParameter(uac.command.player(uac.command.optional))
 
 function PLUGIN:SpawnPlayer(ply, target)
+	if target == uac.command.optional then
+		target = ply
+	end
+
 	target:Spawn()
 end
 PLUGIN:AddCommand("spawn", PLUGIN.SpawnPlayer)
 	:SetPermission("respawn")
 	:SetDescription("Spawns a user")
-	:AddParameter(uac.command.player)
+	:AddParameter(uac.command.player(uac.command.optional))

@@ -6,7 +6,7 @@ PLUGIN:AddPermission("strip", "Allows users to strip players of their weapons")
 
 function PLUGIN:StripWeapons(ply, target, weapon)
 	if target:Alive() then
-		if weapon ~= nil then
+		if weapon ~= uac.command.optional then
 			target:StripWeapon(weapon)
 		else
 			target:StripWeapons()
