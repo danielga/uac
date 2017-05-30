@@ -143,7 +143,7 @@ function COMMAND_INDEX:Call(ply, argstr)
 		local data = splitter()
 		local result, err = parameters[i]:Process(ply, data)
 		if result == nil then
-			return false, err
+			return false, "parameter #" .. i .. " failed: " .. err
 		end
 
 		table.insert(args, result)

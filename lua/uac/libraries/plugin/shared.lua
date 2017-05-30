@@ -12,7 +12,7 @@ function uac.plugin.Include(name)
 	if name ~= nil then
 		local loaded = false
 		local plugin = setmetatable({
-			enabled = true,
+			enabled = false,
 			name = name,
 			hooks = {},
 			commands = {}
