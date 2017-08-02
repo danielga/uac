@@ -1,11 +1,11 @@
-uac.sql = uac.sql or {}
+uac.persistence = uac.persistence or {}
 
 include("sqlite.lua")
 include("mysql.lua")
 
 local current_system
 
-function uac.sql.Initialize()
+function uac.persistence.Initialize()
 	-- we already initialized, courtesy of another library
 	if current_system ~= nil then
 		return
@@ -14,8 +14,8 @@ function uac.sql.Initialize()
 	local remote = uac.config.GetValue("sql_connection_type") == "remote" or
 		uac.config.GetValue("sql_connection_type") == "sourcebans"
 
-	if remote and uac.sql.mysql ~= nil then
-		current_system = uac.sql.mysql
+	if remote and uac.persistence.mysql ~= nil then
+		current_system = uac.persistence.mysql
 	else
 		if remote then
 			-- print an error about missing tmysql4 and warn that local was automatically selected
@@ -25,7 +25,7 @@ function uac.sql.Initialize()
 
 		end
 
-		current_system = uac.sql.sqlite
+		current_system = uac.persistence.sqlite
 	end
 
 	local success, err = current_system.Initialize()
@@ -36,20 +36,20 @@ function uac.sql.Initialize()
 
 	return success
 end
-hook.Add("Initialize", "uac.sql.Initialize", function()
-	uac.sql.Initialize()
+hook.Add("Initialize", "uac.persistence.Initialize", function()
+	uac.persistence.Initialize()
 end)
 
-function uac.sql.Query(query, callback, errorcallback, userdata)
-	if current_system == nil and not uac.sql.Initialize() then
+function uac.persistence.Query(query, callback, errorcallback, userdata)
+	if current_system == nil and not uac.persistence.Initialize() then
 		return false
 	end
 
 	return current_system.Query(query, callback, errorcallback, userdata)
 end
 
-function uac.sql.EscapeString(input)
-	if current_system == nil and not uac.sql.Initialize() then
+function uac.persistence.EscapeString(input)
+	if current_system == nil and not uac.persistence.Initialize() then
 		return ""
 	end
 

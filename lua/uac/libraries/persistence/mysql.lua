@@ -4,9 +4,9 @@ if not success then
 	return
 end
 
-uac.sql.mysql = uac.sql.mysql or {}
+uac.persistence.mysql = uac.persistence.mysql or {}
 
-local mysql = uac.sql.mysql
+local mysql = uac.persistence.mysql
 
 function mysql.Initialize()
 	if mysql.dbconnection == nil then

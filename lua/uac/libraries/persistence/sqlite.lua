@@ -1,6 +1,6 @@
-uac.sql.sqlite = uac.sql.sqlite or {}
+uac.persistence.sqlite = uac.persistence.sqlite or {}
 
-local sqlite = uac.sql.sqlite
+local sqlite = uac.persistence.sqlite
 
 function sqlite.Initialize()
 	return true

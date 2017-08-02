@@ -1,3 +1,6 @@
+resource.AddSingleFile("data/uac/unicode/data_9.0.0.dat")
+resource.AddSingleFile("data/uac/unicode/similar_1.0.0.dat")
+
 uac.unicode = uac.unicode or {}
 
 uac.unicode.uppercase = {}
@@ -22,9 +25,15 @@ local string_char = string.char
 local string_byte = string.byte
 local string_Split = string.Split
 local string_Trim = string.Trim
+local string_match = string.match
 local math_floor = math.floor
 local table_concat = table.concat
+local table_insert = table.insert
 local file_Read = file.Read
+local file_Write = file.Write
+local file_Find = file.Find
+local util_Decompress = util.Decompress
+local DecodeULEB128 = uac.string.DecodeULEB128
 
 function uac.unicode.CodePoint(seq, offset)
 	offset = offset or 1
@@ -239,9 +248,53 @@ end
 
 local Character = uac.unicode.Character
 function uac.unicode.ParseUnicodeData()
-	local data = file_Read("data/uac/unicode/8.0.0.txt", "GAME")
-	if data == nil then
+	local Major, minor, revision, decompressed = 0, 0, 0, false
+	local files = file_Find("data/uac/unicode/data_*", "GAME")
+	for i = 1, #files do
+		local M, m, r, ext = string_match(files[i], "^data_(%d+)%.(%d+)%.(%d+)%.(%w+)$")
+		if M and m and r and ext then
+			M, m, r = tonumber(M), tonumber(m), tonumber(r)
+
+			if M > Major then
+				Major = M
+			end
+
+			if m > minor then
+				minor = m
+			end
+
+			if r > revision then
+				revision = r
+			end
+
+			if not decompressed and ext == "txt" then
+				decompressed = true
+			end
+		end
+	end
+
+	if Major == 0 and minor == 0 and revision == 0 then
 		return false
+	end
+
+	local data
+	if not decompressed then
+		data = file_Read("data/uac/unicode/data_" .. Major .. "." .. minor .. "." .. revision .. ".dat", "GAME")
+		if data == nil then
+			return false
+		end
+
+		data = util_Decompress(data)
+		if data == nil then
+			return false
+		end
+
+		file_Write("uac/unicode/data_" .. Major .. "." .. minor .. "." .. revision .. ".txt", data)
+	else
+		data = file_Read("uac/unicode/data_" .. Major .. "." .. minor .. "." .. revision .. ".txt", "DATA")
+		if data == nil then
+			return false
+		end
 	end
 
 	data = string_Split(data, "\n")
@@ -288,37 +341,77 @@ function uac.unicode.ParseUnicodeData()
 end
 
 function uac.unicode.ParseSimilarData()
-	local data = file_Read("data/uac/unicode/similar.txt", "GAME")
+	local Major, minor, revision, decompressed = 0, 0, 0, false
+	local files = file_Find("data/uac/unicode/similar_*", "GAME")
+	for i = 1, #files do
+		local M, m, r, ext = string_match(files[i], "^similar_(%d+)%.(%d+)%.(%d+)%.(%w+)$")
+		if M and m and r and ext then
+			M, m, r = tonumber(M), tonumber(m), tonumber(r)
+
+			if M > Major then
+				Major = M
+			end
+
+			if m > minor then
+				minor = m
+			end
+
+			if r > revision then
+				revision = r
+			end
+
+			if not decompressed and ext == "txt" then
+				decompressed = true
+			end
+		end
+	end
+
+	if Major == 0 and minor == 0 and revision == 0 then
+		return false
+	end
+
+	local data
+	if not decompressed then
+		data = file_Read("data/uac/unicode/similar_" .. Major .. "." .. minor .. "." .. revision .. ".dat", "GAME")
+		if data == nil then
+			return false
+		end
+
+		data = util_Decompress(data)
+		if data == nil then
+			return false
+		end
+
+		file_Write("uac/unicode/similar_" .. Major .. "." .. minor .. "." .. revision .. ".txt", data)
+	else
+		data = file_Read("uac/unicode/similar_" .. Major .. "." .. minor .. "." .. revision .. ".txt", "DATA")
+		if data == nil then
+			return false
+		end
+	end
+
+	data = DecodeULEB128(data)
 	if data == nil then
 		return false
 	end
 
-	data = string_Split(data, "\n")
-	if data == nil then
-		return false
-	end
+	local i, datalen = 1, #data
+	while i <= datalen do
+		local seq = Character(data[i])
+		i = i + 1
 
-	for i = 1, #data do
-		local line = string_Trim(data[i])
-		if #line == 0 or string_sub(line, 1, 1) == "#" then
-			continue
+		local similars = {}
+
+		while i <= datalen and data[i] ~= 0 do
+			table_insert(similars, Character(data[i]))
+			i = i + 1
 		end
 
-		local columns = string_Split(line, ";")
-		local seq = Character(tonumber("0x" .. columns[1]))
-
-		if columns[2] ~= nil and #columns[2] ~= 0 then
-			local similars = {}
-
-			local codepoints = string_Split(columns[2], " ")
-			for k = 1, #codepoints do
-				similars[k] = Character(tonumber("0x" .. codepoints[k]))
-			end
-
-			if #similars ~= 0 then
-				similar[seq] = similars
-			end
+		if #similars ~= 0 then
+			similar[seq] = similars
 		end
+
+		i = i + 1
 	end
 
 	return true
