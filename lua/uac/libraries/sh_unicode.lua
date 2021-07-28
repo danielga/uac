@@ -19,22 +19,6 @@ if not file.IsDir("uac/unicode", "DATA") then
 	file.CreateDir("uac/unicode")
 end
 
-local tonumber = tonumber
-local string_sub = string.sub
-local string_char = string.char
-local string_byte = string.byte
-local string_Split = string.Split
-local string_Trim = string.Trim
-local string_match = string.match
-local math_floor = math.floor
-local table_concat = table.concat
-local table_insert = table.insert
-local file_Read = file.Read
-local file_Write = file.Write
-local file_Find = file.Find
-local util_Decompress = util.Decompress
-local DecodeULEB128 = uac.string.DecodeULEB128
-
 function uac.unicode.CodePoint(seq, offset)
 	offset = offset or 1
 
@@ -43,7 +27,7 @@ function uac.unicode.CodePoint(seq, offset)
 		return -1
 	end
 
-	local codepoint = string_byte(seq, offset)
+	local codepoint = string.byte(seq, offset)
 	if codepoint < 128 then
 		return codepoint, 1
 	elseif codepoint < 192 then
@@ -53,21 +37,21 @@ function uac.unicode.CodePoint(seq, offset)
 			return -1, 2
 		end
 
-		local b1 = string_byte(seq, offset + 1)
+		local b1 = string.byte(seq, offset + 1)
 		return (codepoint % 32) * 64 + b1 % 64, 2
 	elseif codepoint < 240 then
 		if offset + 2 > len then
 			return -1, 3
 		end
 
-		local b1, b2 = string_byte(seq, offset + 1, offset + 2)
+		local b1, b2 = string.byte(seq, offset + 1, offset + 2)
 		return (codepoint % 16) * 4096 + (b1 % 64) * 64 + (b2 % 64), 3
 	elseif codepoint < 248 then
 		if offset + 3 > len then
 			return -1, 4
 		end
 
-		local b1, b2, b3 = string_byte(seq, offset + 1, offset + 3)
+		local b1, b2, b3 = string.byte(seq, offset + 1, offset + 3)
 		return (codepoint % 8) * 262144 + (b1 % 64) * 4096 + (b2 % 64) * 64 + b3 % 64, 4
 	end
 
@@ -78,23 +62,23 @@ function uac.unicode.Character(codepoint)
 	if codepoint < 0 then
 		return ""
 	elseif codepoint < 128 then
-		return string_char(codepoint)
+		return string.char(codepoint)
 	elseif codepoint < 2048 then
-		return string_char(
-			192 + math_floor(codepoint / 64),
+		return string.char(
+			192 + math.floor(codepoint / 64),
 			128 + (codepoint % 64)
 		)
 	elseif codepoint < 65536 then
-		return string_char(
-			224 + math_floor(codepoint / 4096),
-			128 + (math_floor(codepoint / 64) % 64),
+		return string.char(
+			224 + math.floor(codepoint / 4096),
+			128 + (math.floor(codepoint / 64) % 64),
 			128 + (codepoint % 64)
 		)
 	elseif codepoint < 2097152 then
-		return string_char(
-			240 + math_floor(codepoint / 262144),
-			128 + (math_floor(codepoint / 4096) % 64),
-			128 + (math_floor(codepoint / 64) % 64),
+		return string.char(
+			240 + math.floor(codepoint / 262144),
+			128 + (math.floor(codepoint / 4096) % 64),
+			128 + (math.floor(codepoint / 64) % 64),
 			128 + (codepoint % 64)
 		)
 	end
@@ -103,7 +87,7 @@ function uac.unicode.Character(codepoint)
 end
 
 function uac.unicode.SequenceLength(str, offset)
-	local byte = string_byte(str, offset)
+	local byte = string.byte(str, offset)
 	if byte == nil then
 		return 0
 	elseif byte >= 240 then
@@ -125,7 +109,7 @@ function uac.unicode.Sequence(str, offset)
 	end
 
 	local length = SequenceLength(str, offset)
-	return string_sub(str, offset, offset + length - 1), offset + length
+	return string.sub(str, offset, offset + length - 1), offset + length
 end
 
 local Sequence = uac.unicode.Sequence
@@ -195,7 +179,7 @@ function uac.unicode.Decompose(str)
 
 	map[#str + 1] = outoffset
 	invmap[outoffset] = #str + 1
-	return table_concat(t), map, invmap
+	return table.concat(t), map, invmap
 end
 
 local function Compare(left, right)
@@ -249,9 +233,9 @@ end
 local Character = uac.unicode.Character
 function uac.unicode.ParseUnicodeData()
 	local Major, minor, revision, decompressed = 0, 0, 0, false
-	local files = file_Find("data/uac/unicode/data_*", "GAME")
+	local files = file.Find("data/uac/unicode/data_*", "GAME")
 	for i = 1, #files do
-		local M, m, r, ext = string_match(files[i], "^data_(%d+)%.(%d+)%.(%d+)%.(%w+)$")
+		local M, m, r, ext = string.match(files[i], "^data_(%d+)%.(%d+)%.(%d+)%.(%w+)$")
 		if M and m and r and ext then
 			M, m, r = tonumber(M), tonumber(m), tonumber(r)
 
@@ -279,40 +263,40 @@ function uac.unicode.ParseUnicodeData()
 
 	local data
 	if not decompressed then
-		data = file_Read("data/uac/unicode/data_" .. Major .. "." .. minor .. "." .. revision .. ".dat", "GAME")
+		data = file.Read("data/uac/unicode/data_" .. Major .. "." .. minor .. "." .. revision .. ".dat", "GAME")
 		if data == nil then
 			return false
 		end
 
-		data = util_Decompress(data)
+		data = util.Decompress(data)
 		if data == nil then
 			return false
 		end
 
-		file_Write("uac/unicode/data_" .. Major .. "." .. minor .. "." .. revision .. ".txt", data)
+		file.Write("uac/unicode/data_" .. Major .. "." .. minor .. "." .. revision .. ".txt", data)
 	else
-		data = file_Read("uac/unicode/data_" .. Major .. "." .. minor .. "." .. revision .. ".txt", "DATA")
+		data = file.Read("uac/unicode/data_" .. Major .. "." .. minor .. "." .. revision .. ".txt", "DATA")
 		if data == nil then
 			return false
 		end
 	end
 
-	data = string_Split(data, "\n")
+	data = string.Split(data, "\n")
 	if data == nil then
 		return false
 	end
 
 	for i = 1, #data do
-		local line = string_Trim(data[i])
-		if #line == 0 or string_sub(line, 1, 1) == "#" then
+		local line = string.Trim(data[i])
+		if #line == 0 or string.sub(line, 1, 1) == "#" then
 			continue
 		end
 
-		local columns = string_Split(line, ";")
+		local columns = string.Split(line, ";")
 		local codepoint = tonumber("0x" .. (columns[1] or "0")) or 0
 
 		if columns[6] ~= nil and #columns[6] ~= 0 then
-			local decomps = string_Split(columns[6], " ")
+			local decomps = string.Split(columns[6], " ")
 			local decomp = ""
 			for k = 1, #decomps do
 				local cpdecomp = tonumber("0x" .. decomps[k])
@@ -342,9 +326,9 @@ end
 
 function uac.unicode.ParseSimilarData()
 	local Major, minor, revision, decompressed = 0, 0, 0, false
-	local files = file_Find("data/uac/unicode/similar_*", "GAME")
+	local files = file.Find("data/uac/unicode/similar_*", "GAME")
 	for i = 1, #files do
-		local M, m, r, ext = string_match(files[i], "^similar_(%d+)%.(%d+)%.(%d+)%.(%w+)$")
+		local M, m, r, ext = string.match(files[i], "^similar_(%d+)%.(%d+)%.(%d+)%.(%w+)$")
 		if M and m and r and ext then
 			M, m, r = tonumber(M), tonumber(m), tonumber(r)
 
@@ -372,25 +356,25 @@ function uac.unicode.ParseSimilarData()
 
 	local data
 	if not decompressed then
-		data = file_Read("data/uac/unicode/similar_" .. Major .. "." .. minor .. "." .. revision .. ".dat", "GAME")
+		data = file.Read("data/uac/unicode/similar_" .. Major .. "." .. minor .. "." .. revision .. ".dat", "GAME")
 		if data == nil then
 			return false
 		end
 
-		data = util_Decompress(data)
+		data = util.Decompress(data)
 		if data == nil then
 			return false
 		end
 
-		file_Write("uac/unicode/similar_" .. Major .. "." .. minor .. "." .. revision .. ".txt", data)
+		file.Write("uac/unicode/similar_" .. Major .. "." .. minor .. "." .. revision .. ".txt", data)
 	else
-		data = file_Read("uac/unicode/similar_" .. Major .. "." .. minor .. "." .. revision .. ".txt", "DATA")
+		data = file.Read("uac/unicode/similar_" .. Major .. "." .. minor .. "." .. revision .. ".txt", "DATA")
 		if data == nil then
 			return false
 		end
 	end
 
-	data = DecodeULEB128(data)
+	data = uac.string.DecodeULEB128(data)
 	if data == nil then
 		return false
 	end
@@ -403,7 +387,7 @@ function uac.unicode.ParseSimilarData()
 		local similars = {}
 
 		while i <= datalen and data[i] ~= 0 do
-			table_insert(similars, Character(data[i]))
+			table.insert(similars, Character(data[i]))
 			i = i + 1
 		end
 

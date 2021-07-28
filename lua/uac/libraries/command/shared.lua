@@ -94,7 +94,7 @@ function uac.command.Run(ply, command, argstr)
 	local closest_command = ""
 	local closest_distance = math.huge
 	for com, _ in pairs(command_list) do
-		local distance = uac.string.Levenshtein(command, com)
+		local distance = uac.string.DamerauLevenshteinDistance(command, com)
 		if distance < closest_distance then
 			closest_distance = distance
 			closest_command = com

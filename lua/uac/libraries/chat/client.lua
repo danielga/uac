@@ -18,7 +18,7 @@ end)
 local ENTITY = FindMetaTable("Entity")
 
 function ENTITY:ChatText(...)
-	if self == NULL then
+	if not self:IsValid() then
 		MsgC(...)
 		MsgN()
 	end

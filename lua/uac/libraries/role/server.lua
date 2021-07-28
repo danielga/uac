@@ -1,4 +1,8 @@
+AddCSLuaFile("client.lua")
 AddCSLuaFile("shared.lua")
+AddCSLuaFile("sh_entity.lua")
+AddCSLuaFile("sh_player.lua")
+
 include("shared.lua")
 
 util.AddNetworkString("uac_role_synchronize")
@@ -9,18 +13,21 @@ util.AddNetworkString("uac_role_permissions")
 
 local role_list = uac.role.list
 
+hook.Add("PlayerAuthed", "uac.role.PlayerAuthed", function(ply, steamid)
+	-- get player role and set their permissions
+end)
+
 hook.Add("PlayerInitialSpawn", "uac.role.SynchronizeList", function(ply)
 	local list_size = #role_list
 
 	net.Start("uac_role_synchronize")
-	net.WriteUInt(list_size, 8)
+		net.WriteUInt(list_size, 8)
 
-	for i = 1, list_size do
-		local role = role_list[i]
-		net.WriteString(role.name)
-		net.WriteString(uac.string.EncodeULEB128(role.rawpermissions))
-	end
-	
+		for i = 1, list_size do
+			local role = role_list[i]
+			net.WriteString(role.name)
+			net.WriteString(uac.string.EncodeULEB128(role.rawpermissions))
+		end
 	net.Send(ply)
 end)
 
@@ -57,9 +64,9 @@ function uac.role.Add(name, permissions, is_default, no_broadcast, index)
 
 	if not no_broadcast then
 		net.Start("uac_role_add")
-		net.WriteUInt(index, 8)
-		net.WriteString(name)
-		net.WriteString(uac.string.EncodeULEB128(raw_permissions))
+			net.WriteUInt(index, 8)
+			net.WriteString(name)
+			net.WriteString(uac.string.EncodeULEB128(raw_permissions))
 		net.Broadcast()
 	end
 end
@@ -81,7 +88,7 @@ function uac.role.Remove(name)
 	role_list[name] = nil
 
 	net.Start("uac_role_remove")
-	net.WriteUInt(index, 8)
+		net.WriteUInt(index, 8)
 	net.Broadcast()
 end
 

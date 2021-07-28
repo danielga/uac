@@ -1,19 +1,15 @@
 uac.player = uac.player or {}
 
-local ENTITY = FindMetaTable("Entity")
 local PLAYER = FindMetaTable("Player")
 
 if SERVER then
 	util.AddNetworkString("uac_player_notify")
 
-	function ENTITY:Notify(message, type, length)
-	end
-
 	function PLAYER:Notify(message, type, length)
 		net.Start("uac_player_notify")
-		net.WriteString(message)
-		net.WriteUInt(type, 8)
-		net.WriteUInt(length, 16)
+			net.WriteString(message)
+			net.WriteUInt(type, 8)
+			net.WriteUInt(length, 16)
 		net.Send(self)
 	end
 else
@@ -21,13 +17,6 @@ else
 		-- Maximum number of seconds for notifications with this is 65535 which seems reasonable
 		notification.AddLegacy(net.ReadString(), net.ReadUInt(8), net.ReadUInt(16))
 	end)
-
-	function ENTITY:Notify(message, type, length)
-	end
-
-	function ENTITY:IsListenServerHost()
-		return false
-	end
 
 	function PLAYER:Notify(message, type, length)
 		if self == LocalPlayer() then
@@ -40,11 +29,7 @@ else
 	end
 end
 
-function ENTITY:IsGameHost()
-	return self == NULL
-end
-
-function ENTITY:FindFreeSpace(behind)
+function PLAYER:FindFreeSpace(behind)
 	local plypos = self:GetPos()
 	local plyang = self:EyeAngles()
 	local yaw =  math.floor(plyang.y / 45 + 0.5) * 45 --snap to 45 degree.
@@ -75,10 +60,6 @@ function ENTITY:FindFreeSpace(behind)
 	end
 end
 
-function PLAYER:IsGameHost()
-	return game.SinglePlayer() or self:IsListenServerHost()
-end
-
 function uac.player.GetPlayerFromSteamID(steamid)
 	local plys = player.GetAll()
 	for i = 1, #plys do
@@ -104,7 +85,7 @@ end
 local function CompareStrings(target, possible)
 	local targetdist = #target * 0.5
 
-	local distance = uac.string.Levenshtein(target, possible)
+	local distance = uac.string.DamerauLevenshteinDistance(target, possible)
 	return uac.unicode.Similar(possible, target) or distance <= targetdist, distance
 end
 
@@ -193,7 +174,7 @@ function uac.player.GetTargets(executor, target, ignore_immunity, every_match)
 		local ply = player.GetByUniqueID(target)
 		local userid = tonumber(target)
 
-		if ply and ply:IsPlayer() then
+		if IsValid(ply) and ply:IsPlayer() then
 			type = "uniqueid"
 			table.insert(found, ply)
 		elseif userid then

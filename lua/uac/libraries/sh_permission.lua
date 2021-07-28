@@ -1,6 +1,6 @@
-uac.permission = uac.permission or {
-	list = {}
-}
+uac.permission = uac.permission or {}
+
+uac.permission.list = {}
 
 local permission_list = uac.permission.list
 
