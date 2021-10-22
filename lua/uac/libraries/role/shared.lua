@@ -2,7 +2,6 @@ uac.role = uac.role or {
 	list = {}
 }
 
-include("sh_entity.lua")
 include("sh_player.lua")
 
 local role_list = uac.role.list

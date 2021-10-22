@@ -1,6 +1,5 @@
 AddCSLuaFile("client.lua")
 AddCSLuaFile("shared.lua")
-AddCSLuaFile("sh_entity.lua")
 AddCSLuaFile("sh_player.lua")
 
 include("shared.lua")

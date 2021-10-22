@@ -1,4 +1,19 @@
 -- Execution of file should be able to continue even if tmysql4 is missing
+local module_filename = SERVER and "gmsv_tmysql4_" or "gmcl_tmysql4_"
+if system.IsWindows() then
+	module_filename = module_filename .. (jit.arch == "x86" and "win32.dll" or "win64.dll")
+elseif system.IsLinux() then
+	module_filename = module_filename .. (jit.arch == "x86" and "linux.dll" or "linux64.dll")
+elseif system.IsOSX() then
+	module_filename = module_filename .. (jit.arch == "x86" and "osx.dll" or "osx64.dll")
+else
+	return
+end
+
+if not file.Exists("lua/bin/" .. module_filename, "MOD") then
+	return
+end
+
 local success = pcall(require, "tmysql4")
 if not success then
 	return
